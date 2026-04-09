@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "V1V Creative Studio"
+version = "1.0.0"
+id = "artifacts/v1v-website"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22583
+
+[services.development]
+run = "pnpm --filter @workspace/v1v-website run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/v1v-website", "run", "build" ]
+publicDir = "artifacts/v1v-website/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22583"
+BASE_PATH = "/"
