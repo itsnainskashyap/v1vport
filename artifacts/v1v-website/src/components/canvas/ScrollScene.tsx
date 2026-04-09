@@ -64,7 +64,7 @@ export function ScrollScene({ scrollProgress }: Props) {
       <group visible={labOpacity > 0.01}>
         <HexTunnel progress={scrollProgress} opacity={labOpacity} />
       </group>
-      <ParticleField count={isMobile ? 2000 : 6000} scrollProgress={scrollProgress} />
+      <ParticleField count={isMobile ? 2000 : 8000} scrollProgress={scrollProgress} />
     </group>
   );
 }

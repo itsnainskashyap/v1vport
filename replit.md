@@ -37,7 +37,8 @@ V1V Creative Studio website — a cinematic, full-screen immersive website for a
 ### Frontend Structure
 - `pages/Home.tsx` — Main page with fixed 3D canvas + scrolling HTML overlay. Wires scrollProgress (0-1) from Lenis scroll into Scene.tsx. GSAP ScrollTrigger animates section reveals. Pointer Events gesture layer handles swipe-to-scroll and pinch-to-navigate.
 - `pages/Admin.tsx` — Password-protected admin dashboard (projects CRUD, settings)
-- `components/canvas/Scene.tsx` — Three.js R3F canvas with post-processing (bloom, chromatic aberration, vignette), CanvasErrorBoundary, WebGL fallback
+- `components/LoadingScreen.tsx` — Animated loading screen with canvas-drawn 3D progress ring, percentage counter, and fade-out transition
+- `components/canvas/Scene.tsx` — Three.js R3F canvas with post-processing (bloom, chromatic aberration, glitch, vignette), CanvasErrorBoundary, WebGL fallback
 - `components/canvas/ScrollScene.tsx` — Main 3D composition orchestrated by scrollProgress (replaces old HeroScene.tsx). Contains glass torus, ribbon sculpture, particles with scroll-driven transitions.
 - `components/canvas/HexTunnel.tsx` — Procedural hex tunnel geometry (appears in middle scroll range)
 - `components/canvas/CrystalSpine.tsx` — Crystal spine backbone with icosahedra

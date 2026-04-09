@@ -7,72 +7,104 @@ interface Props {
   opacity: number;
 }
 
+function createHexagonGeometry(outerR: number, innerR: number): THREE.BufferGeometry {
+  const sides = 6;
+  const vertices: number[] = [];
+  const indices: number[] = [];
+
+  for (let i = 0; i < sides; i++) {
+    const a1 = (i / sides) * Math.PI * 2 - Math.PI / 2;
+    const a2 = ((i + 1) / sides) * Math.PI * 2 - Math.PI / 2;
+
+    const ox1 = Math.cos(a1) * outerR;
+    const oy1 = Math.sin(a1) * outerR;
+    const ox2 = Math.cos(a2) * outerR;
+    const oy2 = Math.sin(a2) * outerR;
+    const ix1 = Math.cos(a1) * innerR;
+    const iy1 = Math.sin(a1) * innerR;
+    const ix2 = Math.cos(a2) * innerR;
+    const iy2 = Math.sin(a2) * innerR;
+
+    const base = vertices.length / 3;
+    vertices.push(ox1, oy1, 0, ox2, oy2, 0, ix1, iy1, 0, ix2, iy2, 0);
+    indices.push(base, base + 1, base + 2, base + 1, base + 3, base + 2);
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
+}
+
 export function HexTunnel({ progress, opacity }: Props) {
   const groupRef = useRef<THREE.Group>(null);
 
-  const hexRings = useMemo(() => {
-    const rings: { position: THREE.Vector3; rotation: number; scale: number }[] = [];
-    const count = 12;
-    for (let i = 0; i < count; i++) {
-      const z = -i * 1.2;
-      rings.push({
-        position: new THREE.Vector3(0, 0, z),
-        rotation: (i * Math.PI) / 6,
-        scale: 1.5 + Math.sin(i * 0.5) * 0.3,
-      });
-    }
-    return rings;
-  }, []);
+  const { hexGeo, cellPositions } = useMemo(() => {
+    const hexGeo = createHexagonGeometry(1.0, 0.92);
 
-  const hexShape = useMemo(() => {
-    const shape = new THREE.Shape();
-    const sides = 6;
-    const r = 1;
-    for (let i = 0; i <= sides; i++) {
-      const angle = (i / sides) * Math.PI * 2 - Math.PI / 2;
-      const x = Math.cos(angle) * r;
-      const y = Math.sin(angle) * r;
-      if (i === 0) shape.moveTo(x, y);
-      else shape.lineTo(x, y);
+    const cellPositions: { pos: THREE.Vector3; rot: number; scale: number; ring: number; cell: number }[] = [];
+    const ringCount = 16;
+    const cellsPerRing = 8;
+    const tunnelRadius = 2.5;
+
+    for (let r = 0; r < ringCount; r++) {
+      const z = -r * 1.0;
+      for (let c = 0; c < cellsPerRing; c++) {
+        const angle = (c / cellsPerRing) * Math.PI * 2 + (r % 2) * (Math.PI / cellsPerRing);
+        const x = Math.cos(angle) * tunnelRadius;
+        const y = Math.sin(angle) * tunnelRadius;
+        cellPositions.push({
+          pos: new THREE.Vector3(x, y, z),
+          rot: angle + Math.PI / 2,
+          scale: 0.35 + Math.sin(r * 0.4 + c * 0.7) * 0.08,
+          ring: r,
+          cell: c,
+        });
+      }
     }
-    const hole = new THREE.Path();
-    const innerR = r - 0.06;
-    for (let i = 0; i <= sides; i++) {
-      const angle = (i / sides) * Math.PI * 2 - Math.PI / 2;
-      const x = Math.cos(angle) * innerR;
-      const y = Math.sin(angle) * innerR;
-      if (i === 0) hole.moveTo(x, y);
-      else hole.lineTo(x, y);
-    }
-    shape.holes.push(hole);
-    return shape;
+    return { hexGeo, cellPositions };
   }, []);
 
   useFrame((state) => {
     if (!groupRef.current) return;
     const t = state.clock.elapsedTime;
-    groupRef.current.position.z = 3 + progress * 8;
-    groupRef.current.children.forEach((child, i) => {
-      child.rotation.z = (i * Math.PI) / 6 + t * 0.1 * (i % 2 === 0 ? 1 : -1);
-      const pulse = Math.sin(t * 2 + i * 0.5) * 0.05;
-      child.scale.setScalar(hexRings[i].scale + pulse);
-    });
+    groupRef.current.position.z = 3 + progress * 10;
+
+    const children = groupRef.current.children;
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i] as THREE.Mesh;
+      if (!child.isMesh) continue;
+      const info = cellPositions[i];
+      if (!info) continue;
+      const pulse = Math.sin(t * 1.5 + info.ring * 0.3 + info.cell * 0.8) * 0.04;
+      child.scale.setScalar(info.scale + pulse);
+      child.rotation.z = info.rot + t * 0.05 * (info.ring % 2 === 0 ? 1 : -1);
+      const mat = child.material as THREE.MeshBasicMaterial;
+      mat.opacity = opacity * (0.12 + Math.sin(t * 2 + info.ring * 0.4) * 0.06);
+    }
   });
 
   return (
     <group ref={groupRef}>
-      {hexRings.map((ring, i) => (
-        <mesh key={i} position={ring.position} rotation={[0, 0, ring.rotation]}>
-          <shapeGeometry args={[hexShape]} />
+      {cellPositions.map((cell, i) => (
+        <mesh
+          key={i}
+          geometry={hexGeo}
+          position={cell.pos}
+          rotation={[Math.PI / 2, 0, cell.rot]}
+          scale={cell.scale}
+        >
           <meshBasicMaterial
-            color={i % 2 === 0 ? "#00f0ff" : "#8b5cf6"}
+            color={cell.ring % 3 === 0 ? "#00f0ff" : cell.ring % 3 === 1 ? "#8b5cf6" : "#00e5a0"}
             transparent
-            opacity={opacity * (0.15 + Math.sin(i * 0.7) * 0.1)}
+            opacity={opacity * 0.15}
             side={THREE.DoubleSide}
           />
         </mesh>
       ))}
-      <pointLight position={[0, 0, -6]} intensity={0.8 * opacity} color="#00f0ff" distance={15} />
+      <pointLight position={[0, 0, -8]} intensity={1.0 * opacity} color="#00f0ff" distance={20} />
+      <pointLight position={[0, 0, -4]} intensity={0.6 * opacity} color="#8b5cf6" distance={15} />
     </group>
   );
 }

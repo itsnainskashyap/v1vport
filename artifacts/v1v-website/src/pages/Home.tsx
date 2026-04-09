@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { CustomCursor } from "@/components/CustomCursor";
 import { Scene } from "@/components/canvas/Scene";
 import { UIOverlay } from "@/components/UIOverlay";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -10,6 +11,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function Home() {
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [loaded, setLoaded] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
   const lenisRef = useRef<Lenis | null>(null);
   const triggersRef = useRef<ScrollTrigger[]>([]);
@@ -132,25 +134,30 @@ export default function Home() {
     pinchStartRef.current = null;
   }, []);
 
+  const handleLoadComplete = useCallback(() => setLoaded(true), []);
+
   return (
-    <main
-      ref={mainRef}
-      className="relative w-full bg-background text-foreground touch-pan-y"
-      onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
-      <CustomCursor />
+    <>
+      {!loaded && <LoadingScreen onComplete={handleLoadComplete} />}
+      <main
+        ref={mainRef}
+        className="relative w-full bg-background text-foreground touch-pan-y"
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        <CustomCursor />
 
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <Scene scrollProgress={scrollProgress} />
-      </div>
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <Scene scrollProgress={scrollProgress} />
+        </div>
 
-      <div className="relative z-10 w-full pointer-events-none">
-        <UIOverlay />
-      </div>
-    </main>
+        <div className="relative z-10 w-full pointer-events-none">
+          <UIOverlay />
+        </div>
+      </main>
+    </>
   );
 }

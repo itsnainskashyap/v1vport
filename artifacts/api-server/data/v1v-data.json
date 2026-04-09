@@ -10,13 +10,13 @@
     "contactPhone": "",
     "contactAddress": "",
     "socialLinks": {
-      "twitter": "https://twitter.com/v1vstudio",
+      "twitter": "https://twitter.com/v1vstudio-test",
       "instagram": "https://instagram.com/v1vstudio",
       "linkedin": "https://linkedin.com/company/v1v",
       "github": "https://github.com/v1v"
     },
     "themeColors": {
-      "primary": "#00f0ff",
+      "primary": "#112233",
       "secondary": "#8b5cf6",
       "accent": "#f0c040"
     }

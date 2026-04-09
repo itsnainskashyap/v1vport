@@ -26,6 +26,8 @@ export default function Admin() {
   });
   const [settingsForm, setSettingsForm] = useState({
     heroTagline: "", heroSubtitle: "", aboutTitle: "", aboutText: "", aboutFoundedYear: "", contactEmail: "", contactPhone: "", contactAddress: "",
+    socialTwitter: "", socialInstagram: "", socialLinkedin: "", socialGithub: "",
+    themePrimary: "", themeSecondary: "", themeAccent: "",
   });
 
   useEffect(() => {
@@ -48,6 +50,13 @@ export default function Admin() {
         contactEmail: settings.contactEmail || "",
         contactPhone: settings.contactPhone || "",
         contactAddress: settings.contactAddress || "",
+        socialTwitter: settings.socialLinks?.twitter || "",
+        socialInstagram: settings.socialLinks?.instagram || "",
+        socialLinkedin: settings.socialLinks?.linkedin || "",
+        socialGithub: settings.socialLinks?.github || "",
+        themePrimary: settings.themeColors?.primary || "",
+        themeSecondary: settings.themeColors?.secondary || "",
+        themeAccent: settings.themeColors?.accent || "",
       });
     }
   }, [settings]);
@@ -123,6 +132,17 @@ export default function Admin() {
       contactEmail: settingsForm.contactEmail,
       contactPhone: settingsForm.contactPhone || undefined,
       contactAddress: settingsForm.contactAddress || undefined,
+      socialLinks: {
+        twitter: settingsForm.socialTwitter || undefined,
+        instagram: settingsForm.socialInstagram || undefined,
+        linkedin: settingsForm.socialLinkedin || undefined,
+        github: settingsForm.socialGithub || undefined,
+      },
+      themeColors: {
+        primary: settingsForm.themePrimary || undefined,
+        secondary: settingsForm.themeSecondary || undefined,
+        accent: settingsForm.themeAccent || undefined,
+      },
     };
     updateSettingsMutation.mutate({ data: settingsPayload }, {
       onSuccess: () => { queryClient.invalidateQueries({ queryKey: getGetSettingsQueryKey() }); },
@@ -248,42 +268,94 @@ export default function Admin() {
         )}
 
         {activeTab === "settings" && (
-          <form onSubmit={handleUpdateSettings} className="bg-card/50 border border-foreground/5 p-6 space-y-4">
-            <h3 className="text-sm font-bold tracking-[0.1em] uppercase mb-4">SITE SETTINGS</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <label className="text-xs text-foreground/40 font-mono mb-1 block">HERO TAGLINE</label>
-                <input value={settingsForm.heroTagline} onChange={(e) => setSettingsForm((s) => ({ ...s, heroTagline: e.target.value }))} className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30" data-testid="input-hero-tagline" />
-              </div>
-              <div className="md:col-span-2">
-                <label className="text-xs text-foreground/40 font-mono mb-1 block">HERO SUBTITLE</label>
-                <input value={settingsForm.heroSubtitle} onChange={(e) => setSettingsForm((s) => ({ ...s, heroSubtitle: e.target.value }))} className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30" data-testid="input-hero-subtitle" />
-              </div>
-              <div className="md:col-span-2">
-                <label className="text-xs text-foreground/40 font-mono mb-1 block">ABOUT TITLE</label>
-                <input value={settingsForm.aboutTitle} onChange={(e) => setSettingsForm((s) => ({ ...s, aboutTitle: e.target.value }))} className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30" data-testid="input-about-title" />
-              </div>
-              <div className="md:col-span-2">
-                <label className="text-xs text-foreground/40 font-mono mb-1 block">ABOUT TEXT</label>
-                <textarea value={settingsForm.aboutText} onChange={(e) => setSettingsForm((s) => ({ ...s, aboutText: e.target.value }))} rows={4} className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30 resize-none" data-testid="input-about-text" />
-              </div>
-              <div>
-                <label className="text-xs text-foreground/40 font-mono mb-1 block">FOUNDED YEAR</label>
-                <input value={settingsForm.aboutFoundedYear} onChange={(e) => setSettingsForm((s) => ({ ...s, aboutFoundedYear: e.target.value }))} className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30" data-testid="input-founded-year" />
-              </div>
-              <div>
-                <label className="text-xs text-foreground/40 font-mono mb-1 block">CONTACT EMAIL</label>
-                <input value={settingsForm.contactEmail} onChange={(e) => setSettingsForm((s) => ({ ...s, contactEmail: e.target.value }))} className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30" data-testid="input-contact-email-setting" />
-              </div>
-              <div>
-                <label className="text-xs text-foreground/40 font-mono mb-1 block">CONTACT PHONE</label>
-                <input value={settingsForm.contactPhone} onChange={(e) => setSettingsForm((s) => ({ ...s, contactPhone: e.target.value }))} className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30" data-testid="input-contact-phone" />
-              </div>
-              <div>
-                <label className="text-xs text-foreground/40 font-mono mb-1 block">CONTACT ADDRESS</label>
-                <input value={settingsForm.contactAddress} onChange={(e) => setSettingsForm((s) => ({ ...s, contactAddress: e.target.value }))} className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30" data-testid="input-contact-address" />
+          <form onSubmit={handleUpdateSettings} className="bg-card/50 border border-foreground/5 p-6 space-y-6">
+            <div>
+              <h3 className="text-sm font-bold tracking-[0.1em] uppercase mb-4">CONTENT SETTINGS</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="text-xs text-foreground/40 font-mono mb-1 block">HERO TAGLINE</label>
+                  <input value={settingsForm.heroTagline} onChange={(e) => setSettingsForm((s) => ({ ...s, heroTagline: e.target.value }))} className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30" data-testid="input-hero-tagline" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-xs text-foreground/40 font-mono mb-1 block">HERO SUBTITLE</label>
+                  <input value={settingsForm.heroSubtitle} onChange={(e) => setSettingsForm((s) => ({ ...s, heroSubtitle: e.target.value }))} className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30" data-testid="input-hero-subtitle" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-xs text-foreground/40 font-mono mb-1 block">ABOUT TITLE</label>
+                  <input value={settingsForm.aboutTitle} onChange={(e) => setSettingsForm((s) => ({ ...s, aboutTitle: e.target.value }))} className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30" data-testid="input-about-title" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-xs text-foreground/40 font-mono mb-1 block">ABOUT TEXT</label>
+                  <textarea value={settingsForm.aboutText} onChange={(e) => setSettingsForm((s) => ({ ...s, aboutText: e.target.value }))} rows={4} className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30 resize-none" data-testid="input-about-text" />
+                </div>
+                <div>
+                  <label className="text-xs text-foreground/40 font-mono mb-1 block">FOUNDED YEAR</label>
+                  <input value={settingsForm.aboutFoundedYear} onChange={(e) => setSettingsForm((s) => ({ ...s, aboutFoundedYear: e.target.value }))} className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30" data-testid="input-founded-year" />
+                </div>
+                <div>
+                  <label className="text-xs text-foreground/40 font-mono mb-1 block">CONTACT EMAIL</label>
+                  <input value={settingsForm.contactEmail} onChange={(e) => setSettingsForm((s) => ({ ...s, contactEmail: e.target.value }))} className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30" data-testid="input-contact-email-setting" />
+                </div>
+                <div>
+                  <label className="text-xs text-foreground/40 font-mono mb-1 block">CONTACT PHONE</label>
+                  <input value={settingsForm.contactPhone} onChange={(e) => setSettingsForm((s) => ({ ...s, contactPhone: e.target.value }))} className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30" data-testid="input-contact-phone" />
+                </div>
+                <div>
+                  <label className="text-xs text-foreground/40 font-mono mb-1 block">CONTACT ADDRESS</label>
+                  <input value={settingsForm.contactAddress} onChange={(e) => setSettingsForm((s) => ({ ...s, contactAddress: e.target.value }))} className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30" data-testid="input-contact-address" />
+                </div>
               </div>
             </div>
+
+            <div className="border-t border-foreground/5 pt-6">
+              <h3 className="text-sm font-bold tracking-[0.1em] uppercase mb-4">SOCIAL LINKS</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-foreground/40 font-mono mb-1 block">TWITTER / X</label>
+                  <input value={settingsForm.socialTwitter} onChange={(e) => setSettingsForm((s) => ({ ...s, socialTwitter: e.target.value }))} placeholder="https://twitter.com/..." className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30" data-testid="input-social-twitter" />
+                </div>
+                <div>
+                  <label className="text-xs text-foreground/40 font-mono mb-1 block">INSTAGRAM</label>
+                  <input value={settingsForm.socialInstagram} onChange={(e) => setSettingsForm((s) => ({ ...s, socialInstagram: e.target.value }))} placeholder="https://instagram.com/..." className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30" data-testid="input-social-instagram" />
+                </div>
+                <div>
+                  <label className="text-xs text-foreground/40 font-mono mb-1 block">LINKEDIN</label>
+                  <input value={settingsForm.socialLinkedin} onChange={(e) => setSettingsForm((s) => ({ ...s, socialLinkedin: e.target.value }))} placeholder="https://linkedin.com/..." className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30" data-testid="input-social-linkedin" />
+                </div>
+                <div>
+                  <label className="text-xs text-foreground/40 font-mono mb-1 block">GITHUB</label>
+                  <input value={settingsForm.socialGithub} onChange={(e) => setSettingsForm((s) => ({ ...s, socialGithub: e.target.value }))} placeholder="https://github.com/..." className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30" data-testid="input-social-github" />
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-foreground/5 pt-6">
+              <h3 className="text-sm font-bold tracking-[0.1em] uppercase mb-4">THEME COLORS</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="text-xs text-foreground/40 font-mono mb-1 block">PRIMARY</label>
+                  <div className="flex gap-2 items-center">
+                    <input type="color" value={settingsForm.themePrimary || "#00f0ff"} onChange={(e) => setSettingsForm((s) => ({ ...s, themePrimary: e.target.value }))} className="w-8 h-8 border border-foreground/10 bg-transparent cursor-pointer" data-testid="input-theme-primary-color" />
+                    <input value={settingsForm.themePrimary} onChange={(e) => setSettingsForm((s) => ({ ...s, themePrimary: e.target.value }))} placeholder="#00f0ff" className="flex-1 bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30 font-mono" data-testid="input-theme-primary" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs text-foreground/40 font-mono mb-1 block">SECONDARY</label>
+                  <div className="flex gap-2 items-center">
+                    <input type="color" value={settingsForm.themeSecondary || "#8b5cf6"} onChange={(e) => setSettingsForm((s) => ({ ...s, themeSecondary: e.target.value }))} className="w-8 h-8 border border-foreground/10 bg-transparent cursor-pointer" data-testid="input-theme-secondary-color" />
+                    <input value={settingsForm.themeSecondary} onChange={(e) => setSettingsForm((s) => ({ ...s, themeSecondary: e.target.value }))} placeholder="#8b5cf6" className="flex-1 bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30 font-mono" data-testid="input-theme-secondary" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs text-foreground/40 font-mono mb-1 block">ACCENT</label>
+                  <div className="flex gap-2 items-center">
+                    <input type="color" value={settingsForm.themeAccent || "#00e5a0"} onChange={(e) => setSettingsForm((s) => ({ ...s, themeAccent: e.target.value }))} className="w-8 h-8 border border-foreground/10 bg-transparent cursor-pointer" data-testid="input-theme-accent-color" />
+                    <input value={settingsForm.themeAccent} onChange={(e) => setSettingsForm((s) => ({ ...s, themeAccent: e.target.value }))} placeholder="#00e5a0" className="flex-1 bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30 font-mono" data-testid="input-theme-accent" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <button type="submit" className="px-6 py-2 bg-primary text-primary-foreground text-xs tracking-[0.15em] uppercase font-medium interactive mt-4" data-testid="button-save-settings">
               {updateSettingsMutation.isPending ? "SAVING..." : "SAVE SETTINGS"}
             </button>

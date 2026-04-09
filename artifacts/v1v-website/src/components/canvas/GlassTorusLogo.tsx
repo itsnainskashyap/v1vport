@@ -16,12 +16,17 @@ export function GlassTorusLogo({ opacity }: Props) {
       torusRef.current.rotation.x = Math.sin(t * 0.2) * 0.1 + 0.3;
       torusRef.current.rotation.y = t * 0.15;
       torusRef.current.rotation.z = Math.cos(t * 0.15) * 0.05;
-      (torusRef.current.material as THREE.MeshPhysicalMaterial).opacity = opacity * 0.9;
+      const mat = torusRef.current.material as THREE.MeshPhysicalMaterial;
+      mat.opacity = opacity * 0.9;
+      mat.iridescence = 0.8 + Math.sin(t * 0.5) * 0.2;
+      mat.iridescenceIOR = 1.3 + Math.sin(t * 0.3) * 0.15;
     }
     if (innerRingRef.current) {
       innerRingRef.current.rotation.x = t * 0.3;
       innerRingRef.current.rotation.y = Math.sin(t * 0.25) * 0.5;
-      (innerRingRef.current.material as THREE.MeshPhysicalMaterial).opacity = opacity * 0.7;
+      const mat = innerRingRef.current.material as THREE.MeshPhysicalMaterial;
+      mat.opacity = opacity * 0.7;
+      mat.iridescence = 0.6 + Math.sin(t * 0.7) * 0.3;
     }
   });
 
@@ -39,6 +44,9 @@ export function GlassTorusLogo({ opacity }: Props) {
           clearcoat={1}
           clearcoatRoughness={0.02}
           envMapIntensity={2}
+          iridescence={1}
+          iridescenceIOR={1.3}
+          iridescenceThicknessRange={[100, 800]}
           transparent
           opacity={opacity * 0.9}
         />
@@ -52,6 +60,9 @@ export function GlassTorusLogo({ opacity }: Props) {
           emissive="#8b5cf6"
           emissiveIntensity={0.3}
           clearcoat={1}
+          iridescence={0.8}
+          iridescenceIOR={1.5}
+          iridescenceThicknessRange={[200, 600]}
           transparent
           opacity={opacity * 0.7}
         />

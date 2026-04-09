@@ -1,8 +1,9 @@
 import { Canvas } from "@react-three/fiber";
-import { Suspense, useState } from "react";
+import { Suspense, useState, useMemo } from "react";
 import { ScrollScene } from "./ScrollScene";
-import { Bloom, EffectComposer, Vignette, ChromaticAberration } from "@react-three/postprocessing";
-import { BlendFunction } from "postprocessing";
+import { Bloom, EffectComposer, Vignette, ChromaticAberration, Glitch } from "@react-three/postprocessing";
+import { BlendFunction, GlitchMode } from "postprocessing";
+import { Vector2 } from "three";
 import { CanvasErrorBoundary } from "./CanvasErrorBoundary";
 
 function SceneFallback() {
@@ -32,6 +33,9 @@ interface SceneProps {
 
 export function Scene({ scrollProgress }: SceneProps) {
   const [hasError, setHasError] = useState(false);
+  const glitchDelay = useMemo(() => new Vector2(8, 15), []);
+  const glitchDuration = useMemo(() => new Vector2(0.1, 0.3), []);
+  const glitchStrength = useMemo(() => new Vector2(0.02, 0.05), []);
 
   if (hasError) {
     return <WebGLFallback />;
@@ -64,6 +68,14 @@ export function Scene({ scrollProgress }: SceneProps) {
             <ChromaticAberration
               blendFunction={BlendFunction.NORMAL}
               offset={[0.0005, 0.0005]}
+            />
+            <Glitch
+              delay={glitchDelay}
+              duration={glitchDuration}
+              strength={glitchStrength}
+              mode={GlitchMode.SPORADIC}
+              active
+              ratio={0.85}
             />
             <Vignette darkness={0.5} offset={0.3} />
           </EffectComposer>
