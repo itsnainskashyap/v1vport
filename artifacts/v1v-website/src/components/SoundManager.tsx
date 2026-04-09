@@ -8,16 +8,18 @@ interface Props {
 export function SoundManager({ scrollProgress, active }: Props) {
   const ctxRef = useRef<AudioContext | null>(null);
   const gainRef = useRef<GainNode | null>(null);
-  const nodesRef = useRef<AudioNode[]>([]);
   const [muted, setMuted] = useState(false);
   const [started, setStarted] = useState(false);
-  const scrollRef = useRef(scrollProgress);
-  scrollRef.current = scrollProgress;
+  const initAttempted = useRef(false);
 
   const initAudio = useCallback(() => {
-    if (ctxRef.current || !active) return;
+    if (ctxRef.current || !active || initAttempted.current) return;
+    initAttempted.current = true;
     try {
       const ctx = new AudioContext();
+      if (ctx.state === "suspended") {
+        ctx.resume();
+      }
       ctxRef.current = ctx;
 
       const masterGain = ctx.createGain();
@@ -28,7 +30,6 @@ export function SoundManager({ scrollProgress, active }: Props) {
       const pad1 = createPad(ctx, 65.41, masterGain);
       const pad2 = createPad(ctx, 98.0, masterGain);
       const pad3 = createPad(ctx, 130.81, masterGain);
-      nodesRef.current.push(pad1, pad2, pad3);
 
       const lfo = ctx.createOscillator();
       const lfoGain = ctx.createGain();
@@ -36,38 +37,48 @@ export function SoundManager({ scrollProgress, active }: Props) {
       lfo.type = "sine";
       lfoGain.gain.value = 3;
       lfo.connect(lfoGain);
-      lfoGain.connect(pad1.detune as unknown as AudioNode);
+      lfoGain.connect(pad1.frequency);
       lfo.start();
-      nodesRef.current.push(lfo);
 
       createAtmosphere(ctx, masterGain);
 
       setStarted(true);
     } catch {
-      // audio not supported
+      initAttempted.current = false;
     }
   }, [active]);
 
   useEffect(() => {
     if (!active) return;
-    const handleClick = () => { initAudio(); window.removeEventListener("click", handleClick); };
-    const handleScroll = () => { initAudio(); window.removeEventListener("scroll", handleScroll); };
-    window.addEventListener("click", handleClick, { once: true });
-    window.addEventListener("scroll", handleScroll, { once: true });
+    const handleInteraction = () => {
+      initAudio();
+      window.removeEventListener("click", handleInteraction);
+      window.removeEventListener("touchstart", handleInteraction);
+      window.removeEventListener("keydown", handleInteraction);
+      window.removeEventListener("wheel", handleInteraction);
+    };
+    window.addEventListener("click", handleInteraction);
+    window.addEventListener("touchstart", handleInteraction);
+    window.addEventListener("keydown", handleInteraction);
+    window.addEventListener("wheel", handleInteraction);
     return () => {
-      window.removeEventListener("click", handleClick);
-      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("click", handleInteraction);
+      window.removeEventListener("touchstart", handleInteraction);
+      window.removeEventListener("keydown", handleInteraction);
+      window.removeEventListener("wheel", handleInteraction);
     };
   }, [active, initAudio]);
 
   useEffect(() => {
-    if (!gainRef.current) return;
+    if (!gainRef.current || !ctxRef.current) return;
     const baseVol = 0.12;
     const dnaBoost = scrollProgress > 0.2 && scrollProgress < 0.7 ? 0.04 : 0;
     const contactFade = scrollProgress > 0.85 ? (1 - (scrollProgress - 0.85) / 0.15) : 1;
-    gainRef.current.gain.linearRampToValueAtTime(
-      muted ? 0 : (baseVol + dnaBoost) * contactFade,
-      (ctxRef.current?.currentTime || 0) + 0.1
+    const targetVol = muted ? 0 : (baseVol + dnaBoost) * contactFade;
+    gainRef.current.gain.setTargetAtTime(
+      targetVol,
+      ctxRef.current.currentTime,
+      0.1
     );
   }, [scrollProgress, muted]);
 
@@ -79,23 +90,23 @@ export function SoundManager({ scrollProgress, active }: Props) {
     };
   }, []);
 
-  const toggleMute = useCallback(() => setMuted((m) => !m), []);
+  const handleClick = useCallback(() => {
+    if (!started) {
+      initAudio();
+    } else {
+      setMuted((m) => !m);
+    }
+  }, [started, initAudio]);
 
   if (!active) return null;
 
   return (
     <button
-      onClick={started ? toggleMute : initAudio}
+      onClick={handleClick}
       className="fixed bottom-8 right-8 z-50 w-8 h-8 flex items-center justify-center rounded-full border border-[rgba(255,255,255,0.08)] hover:border-[rgba(85,170,255,0.3)] transition-all interactive"
-      title={muted ? "Unmute" : "Mute"}
+      title={!started ? "Enable Sound" : muted ? "Unmute" : "Mute"}
     >
-      {!started ? (
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2">
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-          <line x1="23" y1="9" x2="17" y2="15" />
-          <line x1="17" y1="9" x2="23" y2="15" />
-        </svg>
-      ) : muted ? (
+      {!started || muted ? (
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2">
           <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
           <line x1="23" y1="9" x2="17" y2="15" />

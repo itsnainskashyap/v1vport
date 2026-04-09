@@ -8,9 +8,11 @@ interface HandPosition {
 
 interface Props {
   onHandMove: (position: HandPosition | null) => void;
+  onGestureScroll?: (direction: "up" | "down") => void;
+  onGestureSelect?: () => void;
 }
 
-export function HandGesture({ onHandMove }: Props) {
+export function HandGesture({ onHandMove, onGestureScroll, onGestureSelect }: Props) {
   const [showPrompt, setShowPrompt] = useState(true);
   const [cameraActive, setCameraActive] = useState(false);
   const [denied, setDenied] = useState(false);
@@ -20,6 +22,11 @@ export function HandGesture({ onHandMove }: Props) {
   const rafRef = useRef<number>(0);
   const prevCenterRef = useRef<{ x: number; y: number } | null>(null);
   const noDetectCount = useRef(0);
+  const prevFingerCount = useRef(0);
+  const pinchHoldFrames = useRef(0);
+  const lastGestureTime = useRef(0);
+  const prevHandY = useRef(0);
+  const handYSamples = useRef<number[]>([]);
 
   const startCamera = useCallback(async () => {
     try {
@@ -63,6 +70,10 @@ export function HandGesture({ onHandMove }: Props) {
       let sumX = 0;
       let sumY = 0;
       let count = 0;
+      let topPixels = 0;
+      let bottomPixels = 0;
+      let leftPixels = 0;
+      let rightPixels = 0;
 
       for (let y = 0; y < 120; y += 2) {
         for (let x = 0; x < 160; x += 2) {
@@ -86,9 +97,16 @@ export function HandGesture({ onHandMove }: Props) {
             sumX += x;
             sumY += y;
             count++;
+
+            if (y < 40) topPixels++;
+            if (y > 80) bottomPixels++;
+            if (x < 60) leftPixels++;
+            if (x > 100) rightPixels++;
           }
         }
       }
+
+      const now = Date.now();
 
       if (count > 30) {
         noDetectCount.current = 0;
@@ -105,14 +123,56 @@ export function HandGesture({ onHandMove }: Props) {
         prevCenterRef.current = { x: smoothX, y: smoothY };
 
         onHandMove({ x: smoothX, y: smoothY });
+
+        const spread = count / (80 * 60);
+        const isCompact = spread < 0.15;
+        const isOpen = spread > 0.25;
+
+        if (isCompact && count > 50 && count < 600) {
+          pinchHoldFrames.current++;
+
+          if (pinchHoldFrames.current > 15 && now - lastGestureTime.current > 800) {
+            lastGestureTime.current = now;
+            pinchHoldFrames.current = 0;
+            if (onGestureSelect) onGestureSelect();
+          }
+        } else {
+          pinchHoldFrames.current = 0;
+        }
+
+        handYSamples.current.push(rawY);
+        if (handYSamples.current.length > 10) {
+          handYSamples.current.shift();
+        }
+
+        if (isOpen && handYSamples.current.length >= 8 && now - lastGestureTime.current > 500) {
+          const first = handYSamples.current.slice(0, 4).reduce((a, b) => a + b, 0) / 4;
+          const last = handYSamples.current.slice(-4).reduce((a, b) => a + b, 0) / 4;
+          const delta = last - first;
+
+          if (Math.abs(delta) > 0.12) {
+            lastGestureTime.current = now;
+            if (delta > 0 && onGestureScroll) {
+              onGestureScroll("down");
+            } else if (delta < 0 && onGestureScroll) {
+              onGestureScroll("up");
+            }
+            handYSamples.current = [];
+          }
+        }
+
+        prevHandY.current = rawY;
       } else {
         noDetectCount.current++;
         if (noDetectCount.current > 10) {
           prevCenterRef.current = null;
           onHandMove(null);
+          pinchHoldFrames.current = 0;
+          handYSamples.current = [];
         }
       }
 
+      prevFingerCount.current = count;
       rafRef.current = requestAnimationFrame(detectHand);
     }
 
@@ -121,7 +181,7 @@ export function HandGesture({ onHandMove }: Props) {
     return () => {
       cancelAnimationFrame(rafRef.current);
     };
-  }, [cameraActive, onHandMove]);
+  }, [cameraActive, onHandMove, onGestureScroll, onGestureSelect]);
 
   useEffect(() => {
     return () => {
@@ -153,9 +213,16 @@ export function HandGesture({ onHandMove }: Props) {
                   <path d="M18 11V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2v1M14 7V4a2 2 0 0 0-2-2 2 2 0 0 0-2 2v4M10 8V3a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7" />
                   <path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8H12a8 8 0 0 1-8-8V8a2 2 0 1 1 4 0" />
                 </svg>
-                <p className="text-[10px] sm:text-[11px] tracking-[0.12em] sm:tracking-[0.15em] text-[rgba(255,255,255,0.6)] font-mono uppercase">
-                  {denied ? "Camera access denied" : "For hand gesture, allow camera access"}
-                </p>
+                <div>
+                  <p className="text-[10px] sm:text-[11px] tracking-[0.12em] sm:tracking-[0.15em] text-[rgba(255,255,255,0.6)] font-mono uppercase">
+                    {denied ? "Camera access denied" : "Hand gesture control"}
+                  </p>
+                  {!denied && (
+                    <p className="text-[8px] tracking-[0.1em] text-[rgba(255,255,255,0.25)] font-mono mt-1">
+                      PINCH = SELECT · HAND UP/DOWN = SCROLL
+                    </p>
+                  )}
+                </div>
               </div>
 
               {!denied && (

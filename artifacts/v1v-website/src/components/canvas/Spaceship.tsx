@@ -12,9 +12,10 @@ export function Spaceship({ scrollProgress }: Props) {
   const trailRef = useRef<THREE.Points>(null);
   const smoothScroll = useRef(0);
   const prevScroll = useRef(0);
-  const prevPos = useRef(new THREE.Vector3(0, 2, 4));
+  const prevPos = useRef(new THREE.Vector3(0, 2, 6));
   const velocity = useRef(new THREE.Vector3());
   const flyAwayPhase = useRef(0);
+  const sideOffset = useRef(0);
   const { camera } = useThree();
 
   const basePath = import.meta.env.BASE_URL;
@@ -133,9 +134,9 @@ export function Spaceship({ scrollProgress }: Props) {
 
     const startZ = 8;
     const endZ = -80;
-    const pathZ = startZ + (endZ - startZ) * p;
-    const pathX = Math.sin(p * Math.PI * 4) * 1.5;
-    const pathY = Math.sin(p * Math.PI * 2.5) * 0.8;
+    const camPathZ = startZ + (endZ - startZ) * p;
+    const camPathX = Math.sin(p * Math.PI * 4) * 1.5;
+    const camPathY = Math.sin(p * Math.PI * 2.5) * 0.8;
 
     const isFlyingAway = p > 0.92;
 
@@ -144,9 +145,9 @@ export function Spaceship({ scrollProgress }: Props) {
       const flyT = Math.min(flyAwayPhase.current, 1);
       const eased = flyT * flyT * flyT;
 
-      const flyX = pathX + eased * 30;
-      const flyY = pathY + eased * 20;
-      const flyZ = pathZ - eased * 60;
+      const flyX = camPathX + eased * 30;
+      const flyY = camPathY + eased * 20;
+      const flyZ = camPathZ - eased * 60;
 
       const targetPos = new THREE.Vector3(flyX, flyY, flyZ);
       groupRef.current.position.lerp(targetPos, 0.05);
@@ -171,24 +172,20 @@ export function Spaceship({ scrollProgress }: Props) {
     } else {
       flyAwayPhase.current = 0;
 
-      const shipAheadZ = pathZ - 6;
-      const shipX = pathX + Math.sin(t * 0.3) * 0.4;
-      const shipY = pathY + 1.5 + Math.sin(t * 0.25) * 0.3;
-
-      const scrollBoost = Math.abs(scrollSpeed) * 200;
-      const wobbleX = Math.sin(t * 0.8) * (0.3 + scrollBoost * 0.5);
-      const wobbleY = Math.cos(t * 0.6) * (0.2 + scrollBoost * 0.3);
-
-      const isTextVisible = isNearTextSection(p);
-      const sideOffset = isTextVisible ? 4 : 0;
+      const isContentVisible = isNearTextSection(p);
+      const targetSideOffset = isContentVisible ? 5 : 0;
       const sideDir = Math.sin(p * 10) > 0 ? 1 : -1;
+      sideOffset.current += (targetSideOffset * sideDir - sideOffset.current) * 0.02;
 
-      const targetX = shipX + wobbleX + sideOffset * sideDir;
-      const targetY = shipY + wobbleY;
-      const targetZ = shipAheadZ;
+      const gentleWobbleX = Math.sin(t * 0.25) * 0.15;
+      const gentleWobbleY = Math.cos(t * 0.2) * 0.1;
+
+      const targetX = camPathX + sideOffset.current + gentleWobbleX;
+      const targetY = camPathY + 1.2 + gentleWobbleY;
+      const targetZ = camPathZ - 6;
 
       const targetPos = new THREE.Vector3(targetX, targetY, targetZ);
-      groupRef.current.position.lerp(targetPos, 0.035);
+      groupRef.current.position.lerp(targetPos, 0.04);
 
       velocity.current.subVectors(groupRef.current.position, prevPos.current);
       prevPos.current.copy(groupRef.current.position);
@@ -211,7 +208,7 @@ export function Spaceship({ scrollProgress }: Props) {
         groupRef.current.quaternion.slerp(targetQuat, 0.04);
       }
 
-      const targetScale = isTextVisible ? 0.0006 : 0.0015;
+      const targetScale = isContentVisible ? 0.0008 : 0.0015;
       const currentScale = groupRef.current.scale.x;
       const newScale = currentScale + (targetScale - currentScale) * 0.03;
       groupRef.current.scale.setScalar(newScale);
@@ -269,14 +266,15 @@ export function Spaceship({ scrollProgress }: Props) {
 
 function isNearTextSection(p: number): boolean {
   const textRanges = [
-    [0, 0.08],
-    [0.06, 0.14],
-    [0.10, 0.22],
-    [0.14, 0.26],
-    [0.18, 0.30],
-    [0.60, 0.73],
-    [0.72, 0.88],
-    [0.85, 1.0],
+    [0.02, 0.08],
+    [0.08, 0.14],
+    [0.14, 0.22],
+    [0.22, 0.26],
+    [0.26, 0.30],
+    [0.30, 0.58],
+    [0.62, 0.73],
+    [0.74, 0.88],
+    [0.88, 1.0],
   ];
   for (const [start, end] of textRanges) {
     if (p >= start && p <= end) return true;

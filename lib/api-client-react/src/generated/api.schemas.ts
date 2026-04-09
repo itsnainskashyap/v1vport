@@ -56,6 +56,7 @@ export type SiteSettingsSocialLinks = {
   instagram?: string;
   linkedin?: string;
   github?: string;
+  whatsapp?: string;
 };
 
 export type SiteSettingsThemeColors = {

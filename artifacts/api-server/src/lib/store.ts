@@ -38,6 +38,7 @@ export interface SiteSettings {
     instagram?: string;
     linkedin?: string;
     github?: string;
+    whatsapp?: string;
   };
   themeColors?: {
     primary?: string;
@@ -62,6 +63,7 @@ const DEFAULT_DATA: StoreData = {
       instagram: "https://instagram.com/v1vstudio",
       linkedin: "https://linkedin.com/company/v1v",
       github: "https://github.com/v1v",
+      whatsapp: "+917282074603",
     },
     themeColors: {
       primary: "#00f0ff",

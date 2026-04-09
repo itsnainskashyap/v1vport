@@ -26,7 +26,7 @@ export default function Admin() {
   });
   const [settingsForm, setSettingsForm] = useState({
     heroTagline: "", heroSubtitle: "", aboutTitle: "", aboutText: "", aboutFoundedYear: "", contactEmail: "", contactPhone: "", contactAddress: "",
-    socialTwitter: "", socialInstagram: "", socialLinkedin: "", socialGithub: "",
+    socialTwitter: "", socialInstagram: "", socialLinkedin: "", socialGithub: "", socialWhatsapp: "",
     themePrimary: "", themeSecondary: "", themeAccent: "",
   });
 
@@ -54,6 +54,7 @@ export default function Admin() {
         socialInstagram: settings.socialLinks?.instagram || "",
         socialLinkedin: settings.socialLinks?.linkedin || "",
         socialGithub: settings.socialLinks?.github || "",
+        socialWhatsapp: settings.socialLinks?.whatsapp || "",
         themePrimary: settings.themeColors?.primary || "",
         themeSecondary: settings.themeColors?.secondary || "",
         themeAccent: settings.themeColors?.accent || "",
@@ -137,6 +138,7 @@ export default function Admin() {
         instagram: settingsForm.socialInstagram || undefined,
         linkedin: settingsForm.socialLinkedin || undefined,
         github: settingsForm.socialGithub || undefined,
+        whatsapp: settingsForm.socialWhatsapp || undefined,
       },
       themeColors: {
         primary: settingsForm.themePrimary || undefined,
@@ -325,6 +327,10 @@ export default function Admin() {
                 <div>
                   <label className="text-xs text-foreground/40 font-mono mb-1 block">GITHUB</label>
                   <input value={settingsForm.socialGithub} onChange={(e) => setSettingsForm((s) => ({ ...s, socialGithub: e.target.value }))} placeholder="https://github.com/..." className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30" data-testid="input-social-github" />
+                </div>
+                <div>
+                  <label className="text-xs text-foreground/40 font-mono mb-1 block">WHATSAPP</label>
+                  <input value={settingsForm.socialWhatsapp} onChange={(e) => setSettingsForm((s) => ({ ...s, socialWhatsapp: e.target.value }))} placeholder="+917282074603" className="w-full bg-background border border-foreground/10 px-3 py-2 text-sm outline-none focus:border-primary/30" data-testid="input-social-whatsapp" />
                 </div>
               </div>
             </div>

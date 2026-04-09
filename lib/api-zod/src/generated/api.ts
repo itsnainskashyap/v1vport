@@ -147,6 +147,7 @@ export const GetSettingsResponse = zod.object({
       instagram: zod.string().optional(),
       linkedin: zod.string().optional(),
       github: zod.string().optional(),
+      whatsapp: zod.string().optional(),
     })
     .optional(),
   themeColors: zod
@@ -176,6 +177,7 @@ export const UpdateSettingsBody = zod.object({
       instagram: zod.string().optional(),
       linkedin: zod.string().optional(),
       github: zod.string().optional(),
+      whatsapp: zod.string().optional(),
     })
     .optional(),
   themeColors: zod
@@ -202,6 +204,7 @@ export const UpdateSettingsResponse = zod.object({
       instagram: zod.string().optional(),
       linkedin: zod.string().optional(),
       github: zod.string().optional(),
+      whatsapp: zod.string().optional(),
     })
     .optional(),
   themeColors: zod

@@ -56,16 +56,13 @@ function FloatingImage({ config, texture, scrollProgress }: { config: ImageConfi
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.MeshBasicMaterial>(null);
 
-  useFrame((state) => {
+  useFrame(() => {
     if (!meshRef.current) return;
-    const t = state.clock.elapsedTime;
 
     meshRef.current.rotation.z += config.rotSpeed * 0.003;
-    meshRef.current.position.y = config.position[1] + Math.sin(t * 0.4 + config.position[0]) * 0.5;
-    meshRef.current.position.x = config.position[0] + Math.sin(t * 0.2 + config.position[2]) * 0.3;
 
     const camZ = 8 + (-80 - 8) * scrollProgress;
-    const dist = Math.abs(meshRef.current.position.z - camZ);
+    const dist = Math.abs(config.position[2] - camZ);
     const maxDist = 25;
     const fadeOpacity = dist < maxDist ? Math.max(0.05, 1 - dist / maxDist) * 0.45 : 0;
 

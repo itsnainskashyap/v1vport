@@ -79,6 +79,44 @@ export default function Home() {
     setHandPosition(position);
   }, []);
 
+  const handleGestureScroll = useCallback((direction: "up" | "down") => {
+    const lenis = lenisRef.current;
+    if (!lenis) return;
+    const scrollContainer = document.documentElement;
+    const maxScroll = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+    const currentScroll = window.scrollY;
+    const step = maxScroll * 0.05;
+
+    if (direction === "down") {
+      lenis.scrollTo(Math.min(currentScroll + step, maxScroll), { duration: 1.2 });
+    } else {
+      lenis.scrollTo(Math.max(currentScroll - step, 0), { duration: 1.2 });
+    }
+  }, []);
+
+  const handleGestureSelect = useCallback(() => {
+    const clickableElements = document.querySelectorAll(".interactive");
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    let closest: Element | null = null;
+    let closestDist = Infinity;
+
+    clickableElements.forEach((el) => {
+      const rect = el.getBoundingClientRect();
+      const elCenterX = rect.left + rect.width / 2;
+      const elCenterY = rect.top + rect.height / 2;
+      const dist = Math.hypot(elCenterX - centerX, elCenterY - centerY);
+      if (dist < closestDist) {
+        closestDist = dist;
+        closest = el;
+      }
+    });
+
+    if (closest && closestDist < 200) {
+      (closest as HTMLElement).click();
+    }
+  }, []);
+
   const handleCardClick = useCallback((index: number) => {
     setSelectedCardIndex(index);
   }, []);
@@ -108,7 +146,13 @@ export default function Home() {
 
       <div style={{ height: `${SCROLL_HEIGHT}vh` }} className="pointer-events-none" aria-hidden="true" />
 
-      {sceneReady && <HandGesture onHandMove={handleHandMove} />}
+      {sceneReady && (
+        <HandGesture
+          onHandMove={handleHandMove}
+          onGestureScroll={handleGestureScroll}
+          onGestureSelect={handleGestureSelect}
+        />
+      )}
 
       <SoundManager scrollProgress={scrollProgress} active={introComplete} />
 
