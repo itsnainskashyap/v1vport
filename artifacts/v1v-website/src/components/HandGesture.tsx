@@ -19,6 +19,7 @@ export function HandGesture({ onHandMove }: Props) {
   const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number>(0);
   const prevCenterRef = useRef<{ x: number; y: number } | null>(null);
+  const noDetectCount = useRef(0);
 
   const startCamera = useCallback(async () => {
     try {
@@ -63,8 +64,8 @@ export function HandGesture({ onHandMove }: Props) {
       let sumY = 0;
       let count = 0;
 
-      for (let y = 0; y < 120; y += 3) {
-        for (let x = 0; x < 160; x += 3) {
+      for (let y = 0; y < 120; y += 2) {
+        for (let x = 0; x < 160; x += 2) {
           const i = (y * 160 + x) * 4;
           const r = pixels[i];
           const g = pixels[i + 1];
@@ -72,14 +73,14 @@ export function HandGesture({ onHandMove }: Props) {
 
           const max = Math.max(r, g, b);
           const min = Math.min(r, g, b);
-          const diff = max - min;
 
           const isSkin =
-            r > 60 && g > 40 && b > 20 &&
-            r > g && r > b &&
-            diff > 15 &&
-            r - g > 15 &&
-            max - min < 180;
+            (r > 50 && g > 30 && b > 15 &&
+            r > g && (r - g) > 10 &&
+            max - min > 10 &&
+            max - min < 200) ||
+            (r > 180 && g > 130 && b > 80 &&
+            r > g && r > b);
 
           if (isSkin) {
             sumX += x;
@@ -89,14 +90,15 @@ export function HandGesture({ onHandMove }: Props) {
         }
       }
 
-      if (count > 50) {
+      if (count > 30) {
+        noDetectCount.current = 0;
         const cx = sumX / count;
         const cy = sumY / count;
 
         const rawX = -((cx / 160) * 2 - 1);
         const rawY = -((cy / 120) * 2 - 1);
 
-        const smoothing = 0.12;
+        const smoothing = 0.25;
         const prev = prevCenterRef.current;
         const smoothX = prev ? prev.x + (rawX - prev.x) * smoothing : rawX;
         const smoothY = prev ? prev.y + (rawY - prev.y) * smoothing : rawY;
@@ -104,8 +106,11 @@ export function HandGesture({ onHandMove }: Props) {
 
         onHandMove({ x: smoothX, y: smoothY });
       } else {
-        prevCenterRef.current = null;
-        onHandMove(null);
+        noDetectCount.current++;
+        if (noDetectCount.current > 10) {
+          prevCenterRef.current = null;
+          onHandMove(null);
+        }
       }
 
       rafRef.current = requestAnimationFrame(detectHand);

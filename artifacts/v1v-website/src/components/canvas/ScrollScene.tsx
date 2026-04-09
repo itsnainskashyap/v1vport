@@ -4,14 +4,15 @@ import * as THREE from "three";
 import { ParticleText } from "./ParticleText";
 import { DNAHelix } from "./DNAHelix";
 import { ParticleField } from "./ParticleField";
-import { FloatingShapes } from "./FloatingShapes";
+import { FloatingImages } from "./FloatingImages";
 
 interface Props {
   scrollProgress: number;
   handPosition?: { x: number; y: number } | null;
+  onCardClick?: (index: number) => void;
 }
 
-export function ScrollScene({ scrollProgress, handPosition }: Props) {
+export function ScrollScene({ scrollProgress, handPosition, onCardClick }: Props) {
   const { camera } = useThree();
   const mouse = useRef({ x: 0, y: 0 });
   const smoothProgress = useRef(0);
@@ -26,6 +27,13 @@ export function ScrollScene({ scrollProgress, handPosition }: Props) {
     return () => window.removeEventListener("mousemove", handleMouse);
   }, []);
 
+  const textSections = useMemo(() => [
+    { start: 0, end: 0.12, x: 0, y: 0.6, z: 0 },
+    { start: 0.08, end: 0.18, x: 0, y: 1.8, z: -10 },
+    { start: 0.70, end: 0.80, x: 0, y: 1, z: -65 },
+    { start: 0.82, end: 1.0, x: 0, y: 0.5, z: -75 },
+  ], []);
+
   useFrame(() => {
     smoothProgress.current = THREE.MathUtils.lerp(smoothProgress.current, scrollProgress, 0.04);
     const p = smoothProgress.current;
@@ -34,27 +42,46 @@ export function ScrollScene({ scrollProgress, handPosition }: Props) {
     const endZ = -80;
     const cameraZ = startZ + (endZ - startZ) * p;
 
-    const cameraX = Math.sin(p * Math.PI * 3) * 2.5 + Math.sin(p * Math.PI * 7) * 0.8;
-    const cameraY = Math.sin(p * Math.PI * 1.5) * 1.8 + Math.cos(p * Math.PI * 4) * 0.5;
+    let cameraX = Math.sin(p * Math.PI * 3) * 0.4;
+    let cameraY = Math.sin(p * Math.PI * 1.5) * 0.3;
 
-    let parallaxX = mouse.current.x * 0.6;
-    let parallaxY = mouse.current.y * 0.35;
+    let textInfluence = 0;
+    let targetTextX = 0;
+    let targetTextY = 0;
 
-    if (handPosition) {
-      parallaxX = handPosition.x * 1.8;
-      parallaxY = handPosition.y * 1.2;
+    for (const section of textSections) {
+      if (p >= section.start && p <= section.end) {
+        const mid = (section.start + section.end) / 2;
+        const range = (section.end - section.start) / 2;
+        const dist = Math.abs(p - mid);
+        const influence = Math.max(0, 1 - dist / range);
+        if (influence > textInfluence) {
+          textInfluence = influence;
+          targetTextX = section.x;
+          targetTextY = section.y;
+        }
+      }
     }
 
-    camera.position.x = THREE.MathUtils.lerp(camera.position.x, cameraX + parallaxX, 0.03);
-    camera.position.y = THREE.MathUtils.lerp(camera.position.y, cameraY + parallaxY, 0.03);
+    cameraX = THREE.MathUtils.lerp(cameraX, targetTextX, textInfluence * 0.8);
+    cameraY = THREE.MathUtils.lerp(cameraY, targetTextY, textInfluence * 0.5);
+
+    let parallaxX = mouse.current.x * 0.4;
+    let parallaxY = mouse.current.y * 0.25;
+
+    if (handPosition) {
+      parallaxX = handPosition.x * 1.5;
+      parallaxY = handPosition.y * 1.0;
+    }
+
+    camera.position.x = THREE.MathUtils.lerp(camera.position.x, cameraX + parallaxX, 0.04);
+    camera.position.y = THREE.MathUtils.lerp(camera.position.y, cameraY + parallaxY, 0.04);
     camera.position.z = THREE.MathUtils.lerp(camera.position.z, cameraZ, 0.04);
 
-    const lookAhead = 14;
-    const lookX = Math.sin((p + 0.02) * Math.PI * 3) * 1.5;
-    const lookY = Math.sin((p + 0.02) * Math.PI * 1.5) * 0.8;
+    const lookAhead = 12;
     cameraTarget.current.set(
-      lookX * 0.3,
-      lookY * 0.3,
+      cameraX * 0.15,
+      cameraY * 0.15,
       camera.position.z - lookAhead
     );
     camera.lookAt(cameraTarget.current);
@@ -70,9 +97,9 @@ export function ScrollScene({ scrollProgress, handPosition }: Props) {
   const serviceOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.70) * 6)) * Math.max(0, 1 - (scrollProgress - 0.80) * 5);
   const contactOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.82) * 5));
 
-  const heroCount = isMobile ? 6000 : isTablet ? 10000 : 18000;
-  const taglineCount = isMobile ? 3000 : isTablet ? 5000 : 10000;
-  const smallTextCount = isMobile ? 2000 : isTablet ? 3500 : 6000;
+  const heroCount = isMobile ? 8000 : isTablet ? 12000 : 20000;
+  const taglineCount = isMobile ? 4000 : isTablet ? 6000 : 12000;
+  const smallTextCount = isMobile ? 3000 : isTablet ? 5000 : 8000;
 
   return (
     <>
@@ -91,7 +118,7 @@ export function ScrollScene({ scrollProgress, handPosition }: Props) {
         />
         <ParticleText
           text="CREATIVE DIGITAL EXPERIENCES"
-          opacity={heroOpacity * 0.75}
+          opacity={heroOpacity * 0.85}
           scatter={heroScatter}
           position={[0, -1.2, 0]}
           size={isMobile ? 4 : isTablet ? 5 : 7}
@@ -99,68 +126,68 @@ export function ScrollScene({ scrollProgress, handPosition }: Props) {
           color1="#4488cc"
           color2="#8855cc"
           color3="#cc5588"
-          fontSize={isMobile ? 28 : 38}
+          fontSize={isMobile ? 32 : 44}
         />
       </group>
 
       <group visible={aboutOpacity > 0.01}>
         <ParticleText
           text="WE BUILD THE FUTURE"
-          opacity={aboutOpacity * 0.6}
-          position={[isMobile ? 0 : -2, 2.5, -8]}
-          size={isMobile ? 3 : 4.5}
+          opacity={aboutOpacity * 0.7}
+          position={[0, 2.5, -8]}
+          size={isMobile ? 3.5 : 5}
           particleCount={smallTextCount}
           color1="#55ccff"
           color2="#55ffcc"
           color3="#aaffee"
-          fontSize={isMobile ? 30 : 42}
+          fontSize={isMobile ? 34 : 48}
         />
         <ParticleText
           text="DESIGN • CODE • MOTION"
-          opacity={aboutOpacity * 0.5}
-          position={[isMobile ? 0 : 2, 1.0, -12]}
-          size={isMobile ? 3 : 4}
-          particleCount={Math.floor(smallTextCount * 0.7)}
+          opacity={aboutOpacity * 0.6}
+          position={[0, 0.8, -12]}
+          size={isMobile ? 3.5 : 4.5}
+          particleCount={Math.floor(smallTextCount * 0.8)}
           color1="#cc88ff"
           color2="#ff88cc"
           color3="#ffaa88"
-          fontSize={isMobile ? 24 : 32}
+          fontSize={isMobile ? 28 : 38}
         />
       </group>
 
       <group visible={dnaOpacity > 0.01}>
-        <DNAHelix scrollProgress={scrollProgress} opacity={dnaOpacity} />
+        <DNAHelix scrollProgress={scrollProgress} opacity={dnaOpacity} onCardClick={onCardClick} />
       </group>
 
       <group visible={serviceOpacity > 0.01}>
         <ParticleText
           text="BRANDING • WEB • APP • 3D"
-          opacity={serviceOpacity * 0.55}
+          opacity={serviceOpacity * 0.65}
           position={[0, 1, -65]}
-          size={isMobile ? 3.5 : 5.5}
+          size={isMobile ? 4 : 6}
           particleCount={smallTextCount}
           color1="#ffaa55"
           color2="#ff5577"
           color3="#aa55ff"
-          fontSize={isMobile ? 22 : 30}
+          fontSize={isMobile ? 26 : 36}
         />
       </group>
 
       <group visible={contactOpacity > 0.01}>
         <ParticleText
           text="GET IN TOUCH"
-          opacity={contactOpacity * 0.65}
+          opacity={contactOpacity * 0.75}
           position={[0, 0.5, -75]}
-          size={isMobile ? 3 : 5}
+          size={isMobile ? 3.5 : 5.5}
           particleCount={smallTextCount}
           color1="#55aaff"
           color2="#55ffaa"
           color3="#ffaa55"
-          fontSize={isMobile ? 36 : 52}
+          fontSize={isMobile ? 40 : 58}
         />
       </group>
 
-      <FloatingShapes scrollProgress={scrollProgress} />
+      <FloatingImages scrollProgress={scrollProgress} />
 
       <ParticleField count={isMobile ? 6000 : isTablet ? 12000 : 22000} scrollProgress={scrollProgress} />
     </>

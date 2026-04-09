@@ -1,38 +1,69 @@
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useRef, useCallback } from "react";
 
 export function CustomCursor() {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isHovering, setIsHovering] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
+  const dotRef = useRef<HTMLDivElement>(null);
+  const ringRef = useRef<HTMLDivElement>(null);
+  const mousePos = useRef({ x: -100, y: -100 });
+  const ringPos = useRef({ x: -100, y: -100 });
+  const isHovering = useRef(false);
+  const isVisible = useRef(false);
+  const rafId = useRef<number>(0);
 
-  useEffect(() => {
-    // Hide cursor on touch devices
-    if (window.matchMedia("(pointer: coarse)").matches) {
-      return;
+  const animate = useCallback(() => {
+    const ringSpeed = 0.2;
+
+    ringPos.current.x += (mousePos.current.x - ringPos.current.x) * ringSpeed;
+    ringPos.current.y += (mousePos.current.y - ringPos.current.y) * ringSpeed;
+
+    if (dotRef.current) {
+      const scale = isHovering.current ? 2.5 : 1;
+      const opacity = isHovering.current ? 0.5 : 1;
+      dotRef.current.style.transform = `translate(${mousePos.current.x - 8}px, ${mousePos.current.y - 8}px) scale(${scale})`;
+      dotRef.current.style.opacity = String(opacity);
     }
 
+    if (ringRef.current) {
+      const scale = isHovering.current ? 1.5 : 1;
+      ringRef.current.style.transform = `translate(${ringPos.current.x - 16}px, ${ringPos.current.y - 16}px) scale(${scale})`;
+    }
+
+    rafId.current = requestAnimationFrame(animate);
+  }, []);
+
+  useEffect(() => {
+    if (window.matchMedia("(pointer: coarse)").matches) return;
+
     const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-      if (!isVisible) setIsVisible(true);
+      mousePos.current.x = e.clientX;
+      mousePos.current.y = e.clientY;
+      if (!isVisible.current) {
+        isVisible.current = true;
+        if (dotRef.current) dotRef.current.style.display = "block";
+        if (ringRef.current) ringRef.current.style.display = "block";
+      }
     };
 
-    const handleMouseLeave = () => setIsVisible(false);
-    const handleMouseEnter = () => setIsVisible(true);
+    const handleMouseLeave = () => {
+      isVisible.current = false;
+      if (dotRef.current) dotRef.current.style.display = "none";
+      if (ringRef.current) ringRef.current.style.display = "none";
+    };
+
+    const handleMouseEnter = () => {
+      isVisible.current = true;
+      if (dotRef.current) dotRef.current.style.display = "block";
+      if (ringRef.current) ringRef.current.style.display = "block";
+    };
 
     const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (
+      isHovering.current = !!(
         target.tagName.toLowerCase() === "a" ||
         target.tagName.toLowerCase() === "button" ||
         target.closest("a") ||
         target.closest("button") ||
         target.classList.contains("interactive")
-      ) {
-        setIsHovering(true);
-      } else {
-        setIsHovering(false);
-      }
+      );
     };
 
     window.addEventListener("mousemove", handleMouseMove);
@@ -40,46 +71,28 @@ export function CustomCursor() {
     document.addEventListener("mouseenter", handleMouseEnter);
     document.addEventListener("mouseover", handleMouseOver);
 
+    rafId.current = requestAnimationFrame(animate);
+
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseleave", handleMouseLeave);
       document.removeEventListener("mouseenter", handleMouseEnter);
       document.removeEventListener("mouseover", handleMouseOver);
+      cancelAnimationFrame(rafId.current);
     };
-  }, [isVisible]);
-
-  if (!isVisible) return null;
+  }, [animate]);
 
   return (
     <>
-      <motion.div
+      <div
+        ref={dotRef}
         className="fixed top-0 left-0 w-4 h-4 bg-primary rounded-full pointer-events-none z-[9999] mix-blend-screen"
-        animate={{
-          x: mousePosition.x - 8,
-          y: mousePosition.y - 8,
-          scale: isHovering ? 2.5 : 1,
-          opacity: isHovering ? 0.5 : 1,
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 700,
-          damping: 40,
-          mass: 10,
-        }}
+        style={{ display: "none", willChange: "transform", transition: "opacity 0.15s" }}
       />
-      <motion.div
+      <div
+        ref={ringRef}
         className="fixed top-0 left-0 w-8 h-8 border border-primary/50 rounded-full pointer-events-none z-[9998]"
-        animate={{
-          x: mousePosition.x - 16,
-          y: mousePosition.y - 16,
-          scale: isHovering ? 1.5 : 1,
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 300,
-          damping: 30,
-          mass: 15,
-        }}
+        style={{ display: "none", willChange: "transform" }}
       />
     </>
   );

@@ -24,6 +24,7 @@ export default function Home() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [handPosition, setHandPosition] = useState<HandPosition | null>(null);
+  const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
   const lenisRef = useRef<Lenis | null>(null);
 
   useThemeColors();
@@ -73,15 +74,28 @@ export default function Home() {
     setHandPosition(position);
   }, []);
 
+  const handleCardClick = useCallback((index: number) => {
+    setSelectedCardIndex(index);
+  }, []);
+
+  const handleClearCardSelection = useCallback(() => {
+    setSelectedCardIndex(null);
+  }, []);
+
   return (
     <>
       {!loaded && <LoadingScreen onComplete={handleLoadComplete} />}
 
       <div className="fixed inset-0 z-0">
-        <Scene scrollProgress={scrollProgress} handPosition={handPosition} />
+        <Scene scrollProgress={scrollProgress} handPosition={handPosition} onCardClick={handleCardClick} />
       </div>
 
-      <UIOverlay scrollProgress={scrollProgress} onNavigate={handleNavigate} />
+      <UIOverlay
+        scrollProgress={scrollProgress}
+        onNavigate={handleNavigate}
+        selectedCardIndex={selectedCardIndex}
+        onClearCardSelection={handleClearCardSelection}
+      />
 
       <div style={{ height: `${SCROLL_HEIGHT}vh` }} className="pointer-events-none" aria-hidden="true" />
 

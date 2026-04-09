@@ -1,10 +1,11 @@
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useCallback } from "react";
 import { useFrame, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 
 interface Props {
   scrollProgress: number;
   opacity: number;
+  onCardClick?: (index: number) => void;
 }
 
 function createCircleTexture(size: number, hardness: number): THREE.Texture {
@@ -25,7 +26,7 @@ function createCircleTexture(size: number, hardness: number): THREE.Texture {
   return tex;
 }
 
-export function DNAHelix({ scrollProgress, opacity }: Props) {
+export function DNAHelix({ scrollProgress, opacity, onCardClick }: Props) {
   const groupRef = useRef<THREE.Group>(null);
   const strandRef1 = useRef<THREE.Points>(null);
   const strandRef2 = useRef<THREE.Points>(null);
@@ -53,13 +54,13 @@ export function DNAHelix({ scrollProgress, opacity }: Props) {
   const isTablet = typeof window !== "undefined" && window.innerWidth >= 768 && window.innerWidth < 1024;
 
   const dna = useMemo(() => {
-    const radius = isMobile ? 1.0 : isTablet ? 1.1 : 1.3;
-    const height = 45;
-    const turns = 4.5;
-    const strandDensity = isMobile ? 400 : isTablet ? 600 : 800;
-    const basePairCount = isMobile ? 50 : 80;
-    const basePairDots = isMobile ? 6 : 10;
-    const glowCount = isMobile ? 600 : 1200;
+    const radius = isMobile ? 1.2 : isTablet ? 1.4 : 1.6;
+    const height = 50;
+    const turns = 6;
+    const strandDensity = isMobile ? 800 : isTablet ? 1200 : 1600;
+    const basePairCount = isMobile ? 100 : 160;
+    const basePairDots = isMobile ? 8 : 14;
+    const glowCount = isMobile ? 1200 : 2400;
 
     const s1Pos = new Float32Array(strandDensity * 3);
     const s1Base = new Float32Array(strandDensity * 3);
@@ -77,9 +78,9 @@ export function DNAHelix({ scrollProgress, opacity }: Props) {
       const angle = t * Math.PI * 2 * turns;
       const y = (t - 0.5) * height;
 
-      const jx = (Math.random() - 0.5) * 0.08;
-      const jy = (Math.random() - 0.5) * 0.08;
-      const jz = (Math.random() - 0.5) * 0.08;
+      const jx = (Math.random() - 0.5) * 0.06;
+      const jy = (Math.random() - 0.5) * 0.06;
+      const jz = (Math.random() - 0.5) * 0.06;
 
       s1Pos[i3] = Math.cos(angle) * radius + jx;
       s1Pos[i3 + 1] = y + jy;
@@ -122,9 +123,9 @@ export function DNAHelix({ scrollProgress, opacity }: Props) {
       for (let d = 0; d < basePairDots; d++) {
         const idx = (bp * basePairDots + d) * 3;
         const f = d / (basePairDots - 1);
-        bpPos[idx] = p1x + (p2x - p1x) * f + (Math.random() - 0.5) * 0.04;
-        bpPos[idx + 1] = y + (Math.random() - 0.5) * 0.04;
-        bpPos[idx + 2] = p1z + (p2z - p1z) * f + (Math.random() - 0.5) * 0.04;
+        bpPos[idx] = p1x + (p2x - p1x) * f + (Math.random() - 0.5) * 0.03;
+        bpPos[idx + 1] = y + (Math.random() - 0.5) * 0.03;
+        bpPos[idx + 2] = p1z + (p2z - p1z) * f + (Math.random() - 0.5) * 0.03;
         bpBase[idx] = bpPos[idx]; bpBase[idx + 1] = bpPos[idx + 1]; bpBase[idx + 2] = bpPos[idx + 2];
         const b = 0.6 + Math.random() * 0.4;
         bpColors[idx] = col.r * b; bpColors[idx + 1] = col.g * b; bpColors[idx + 2] = col.b * b;
@@ -142,10 +143,10 @@ export function DNAHelix({ scrollProgress, opacity }: Props) {
       const angle = t * Math.PI * 2 * turns;
       const y = (t - 0.5) * height;
       const side = Math.random() > 0.5 ? 0 : Math.PI;
-      const r = radius + (Math.random() - 0.5) * 1.2;
-      glowPos[i3] = Math.cos(angle + side) * r + (Math.random() - 0.5) * 0.5;
-      glowPos[i3 + 1] = y + (Math.random() - 0.5) * 0.8;
-      glowPos[i3 + 2] = Math.sin(angle + side) * r + (Math.random() - 0.5) * 0.5;
+      const r = radius + (Math.random() - 0.5) * 1.0;
+      glowPos[i3] = Math.cos(angle + side) * r + (Math.random() - 0.5) * 0.4;
+      glowPos[i3 + 1] = y + (Math.random() - 0.5) * 0.6;
+      glowPos[i3 + 2] = Math.sin(angle + side) * r + (Math.random() - 0.5) * 0.4;
       glowBase[i3] = glowPos[i3]; glowBase[i3 + 1] = glowPos[i3 + 1]; glowBase[i3 + 2] = glowPos[i3 + 2];
       const c = allColors[i % allColors.length];
       glowColors[i3] = c.r * 0.5; glowColors[i3 + 1] = c.g * 0.5; glowColors[i3 + 2] = c.b * 0.5;
@@ -153,7 +154,7 @@ export function DNAHelix({ scrollProgress, opacity }: Props) {
 
     const cardPositions: { y: number; angle: number; side: number }[] = [];
     for (let i = 0; i < 5; i++) {
-      const t = 0.12 + (i * 0.19);
+      const t = 0.1 + (i * 0.18);
       const angle = t * Math.PI * 2 * turns;
       const y = (t - 0.5) * height;
       cardPositions.push({ y, angle, side: i % 2 === 0 ? 1 : -1 });
@@ -171,19 +172,19 @@ export function DNAHelix({ scrollProgress, opacity }: Props) {
     };
   }, [isMobile, isTablet]);
 
+  const smoothScroll = useRef(0);
+
   useFrame((state) => {
     if (!groupRef.current) return;
     const t = state.clock.elapsedTime;
 
-    const dnaZone = scrollProgress > 0.2 && scrollProgress < 0.75;
-    const targetSpeed = dnaZone ? 0.35 : 0.04;
-    const currentSpeed = THREE.MathUtils.lerp(
-      groupRef.current.userData.rotSpeed || 0.04,
-      targetSpeed,
-      0.02
-    );
-    groupRef.current.userData.rotSpeed = currentSpeed;
-    groupRef.current.rotation.y += currentSpeed * 0.016;
+    smoothScroll.current += (scrollProgress - smoothScroll.current) * 0.05;
+
+    const dnaProgress = Math.max(0, Math.min(1, (smoothScroll.current - 0.15) / 0.6));
+    groupRef.current.rotation.y = dnaProgress * Math.PI * 3;
+
+    const verticalShift = dnaProgress * dna.height * 0.4;
+    groupRef.current.position.y = verticalShift;
 
     const animatePoints = (ref: React.RefObject<THREE.Points | null>, base: Float32Array, count: number, speed: number) => {
       if (!ref.current) return;
@@ -191,17 +192,17 @@ export function DNAHelix({ scrollProgress, opacity }: Props) {
       const arr = pos.array as Float32Array;
       for (let i = 0; i < count; i++) {
         const i3 = i * 3;
-        arr[i3] = base[i3] + Math.sin(t * speed + i * 0.2) * 0.05;
-        arr[i3 + 1] = base[i3 + 1] + Math.cos(t * speed * 0.8 + i * 0.15) * 0.06;
-        arr[i3 + 2] = base[i3 + 2] + Math.sin(t * speed * 0.5 + i * 0.25) * 0.04;
+        arr[i3] = base[i3] + Math.sin(t * speed + i * 0.2) * 0.04;
+        arr[i3 + 1] = base[i3 + 1] + Math.cos(t * speed * 0.8 + i * 0.15) * 0.05;
+        arr[i3 + 2] = base[i3 + 2] + Math.sin(t * speed * 0.5 + i * 0.25) * 0.03;
       }
       pos.needsUpdate = true;
     };
 
-    animatePoints(strandRef1, dna.strand1.base, dna.strand1.count, 0.4);
-    animatePoints(strandRef2, dna.strand2.base, dna.strand2.count, 0.4);
-    animatePoints(basePairRef, dna.basePairs.base, dna.basePairs.count, 0.3);
-    animatePoints(glowRef, dna.glow.base, dna.glow.count, 0.5);
+    animatePoints(strandRef1, dna.strand1.base, dna.strand1.count, 0.3);
+    animatePoints(strandRef2, dna.strand2.base, dna.strand2.count, 0.3);
+    animatePoints(basePairRef, dna.basePairs.base, dna.basePairs.count, 0.25);
+    animatePoints(glowRef, dna.glow.base, dna.glow.count, 0.4);
 
     if (cardGroupRef.current) {
       const children = cardGroupRef.current.children;
@@ -209,16 +210,20 @@ export function DNAHelix({ scrollProgress, opacity }: Props) {
         const card = dna.cardPositions[i];
         if (!card) continue;
         const cardAngle = card.angle + groupRef.current.rotation.y;
-        const cardR = dna.radius + 2.8;
+        const cardR = dna.radius + 3.0;
         children[i].position.x = Math.cos(cardAngle) * cardR * card.side;
-        children[i].position.y = card.y + Math.sin(t * 0.3 + i) * 0.15;
+        children[i].position.y = card.y + Math.sin(t * 0.3 + i) * 0.1;
         children[i].position.z = Math.sin(cardAngle) * cardR * card.side;
         children[i].rotation.y = -cardAngle * card.side + Math.PI / 2;
       }
     }
   });
 
-  const cardScale = isMobile ? 2.2 : isTablet ? 2.8 : 3.5;
+  const handleCardClick = useCallback((index: number) => {
+    if (onCardClick) onCardClick(index);
+  }, [onCardClick]);
+
+  const cardScale = isMobile ? 2.4 : isTablet ? 3.0 : 3.8;
   const cardH = cardScale * 0.62;
 
   return (
@@ -228,7 +233,7 @@ export function DNAHelix({ scrollProgress, opacity }: Props) {
           <bufferAttribute attach="attributes-position" args={[dna.strand1.positions, 3]} />
           <bufferAttribute attach="attributes-color" args={[dna.strand1.colors, 3]} />
         </bufferGeometry>
-        <pointsMaterial size={0.12} map={strandMap} vertexColors transparent opacity={opacity * 0.95} blending={THREE.AdditiveBlending} depthWrite={false} sizeAttenuation />
+        <pointsMaterial size={0.1} map={strandMap} vertexColors transparent opacity={opacity * 0.95} blending={THREE.AdditiveBlending} depthWrite={false} sizeAttenuation />
       </points>
 
       <points ref={strandRef2}>
@@ -236,7 +241,7 @@ export function DNAHelix({ scrollProgress, opacity }: Props) {
           <bufferAttribute attach="attributes-position" args={[dna.strand2.positions, 3]} />
           <bufferAttribute attach="attributes-color" args={[dna.strand2.colors, 3]} />
         </bufferGeometry>
-        <pointsMaterial size={0.12} map={strandMap} vertexColors transparent opacity={opacity * 0.95} blending={THREE.AdditiveBlending} depthWrite={false} sizeAttenuation />
+        <pointsMaterial size={0.1} map={strandMap} vertexColors transparent opacity={opacity * 0.95} blending={THREE.AdditiveBlending} depthWrite={false} sizeAttenuation />
       </points>
 
       <points ref={basePairRef}>
@@ -244,7 +249,7 @@ export function DNAHelix({ scrollProgress, opacity }: Props) {
           <bufferAttribute attach="attributes-position" args={[dna.basePairs.positions, 3]} />
           <bufferAttribute attach="attributes-color" args={[dna.basePairs.colors, 3]} />
         </bufferGeometry>
-        <pointsMaterial size={0.09} map={strandMap} vertexColors transparent opacity={opacity * 0.8} blending={THREE.AdditiveBlending} depthWrite={false} sizeAttenuation />
+        <pointsMaterial size={0.07} map={strandMap} vertexColors transparent opacity={opacity * 0.85} blending={THREE.AdditiveBlending} depthWrite={false} sizeAttenuation />
       </points>
 
       <points ref={glowRef}>
@@ -252,12 +257,12 @@ export function DNAHelix({ scrollProgress, opacity }: Props) {
           <bufferAttribute attach="attributes-position" args={[dna.glow.positions, 3]} />
           <bufferAttribute attach="attributes-color" args={[dna.glow.colors, 3]} />
         </bufferGeometry>
-        <pointsMaterial size={0.06} map={glowMap} vertexColors transparent opacity={opacity * 0.4} blending={THREE.AdditiveBlending} depthWrite={false} sizeAttenuation />
+        <pointsMaterial size={0.05} map={glowMap} vertexColors transparent opacity={opacity * 0.45} blending={THREE.AdditiveBlending} depthWrite={false} sizeAttenuation />
       </points>
 
       <group ref={cardGroupRef}>
         {dna.cardPositions.map((_, i) => (
-          <group key={i}>
+          <group key={i} onClick={() => handleCardClick(i)}>
             <mesh>
               <planeGeometry args={[cardScale, cardH]} />
               <meshStandardMaterial map={textures[i]} transparent opacity={opacity * 0.9} roughness={0.1} metalness={0.1} side={THREE.DoubleSide} />

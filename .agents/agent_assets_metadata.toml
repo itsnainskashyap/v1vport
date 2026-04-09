@@ -30,3 +30,39 @@ id = "fcvT2WvQed3eLkFfwTxas"
 uri = "file://artifacts/v1v-website/public/projects/stellar.png"
 type = "image"
 title = "generated_image"
+
+[[generated]]
+id = "J4UTopaiMHp8MCMjttHIH"
+uri = "file://artifacts/v1v-website/public/decorative/neural-brain.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "SMjgNbgvP7vmu5X10wc0j"
+uri = "file://artifacts/v1v-website/public/decorative/crystal-prism.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "_aC-CrqLp4-dEwecoUxuP"
+uri = "file://artifacts/v1v-website/public/decorative/circuit-sphere.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "PAiAETcvV2JyT379PLG62"
+uri = "file://artifacts/v1v-website/public/decorative/code-fragments.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "dcUJ5rHSfNouQ4FYamV4F"
+uri = "file://artifacts/v1v-website/public/decorative/dissolving-cube.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "ky4RuuszlZI2UyQFi0Ao-"
+uri = "file://artifacts/v1v-website/public/decorative/digital-eye.png"
+type = "image"
+title = "generated_image"

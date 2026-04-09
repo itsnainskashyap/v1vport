@@ -121,9 +121,10 @@ function CSSFallbackScene({ scrollProgress }: { scrollProgress: number }) {
 interface SceneProps {
   scrollProgress: number;
   handPosition?: { x: number; y: number } | null;
+  onCardClick?: (index: number) => void;
 }
 
-export function Scene({ scrollProgress, handPosition }: SceneProps) {
+export function Scene({ scrollProgress, handPosition, onCardClick }: SceneProps) {
   const [webglSupported, setWebglSupported] = useState<boolean | null>(null);
   const [hasError, setHasError] = useState(false);
 
@@ -166,7 +167,7 @@ export function Scene({ scrollProgress, handPosition }: SceneProps) {
             <pointLight position={[3, -5, -2]} intensity={0.3} color="#cc5599" />
             <pointLight position={[-3, 4, -20]} intensity={0.3} color="#55cc88" />
             <directionalLight position={[0, 10, 5]} intensity={0.25} color="#88aacc" />
-            <ScrollScene scrollProgress={scrollProgress} handPosition={handPosition} />
+            <ScrollScene scrollProgress={scrollProgress} handPosition={handPosition} onCardClick={onCardClick} />
             <EffectComposer multisampling={0}>
               <Bloom
                 intensity={1.5}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useGetSettings, useGetProjects } from "@workspace/api-client-react";
 import { Navigation } from "./Navigation";
@@ -7,6 +7,8 @@ import { ProjectModal } from "./ProjectModal";
 interface Props {
   scrollProgress: number;
   onNavigate: (section: string) => void;
+  selectedCardIndex?: number | null;
+  onClearCardSelection?: () => void;
 }
 
 function clampOpacity(progress: number, fadeIn: number, peak: number, fadeOut: number): number {
@@ -21,19 +23,29 @@ function clampOpacity(progress: number, fadeIn: number, peak: number, fadeOut: n
   return Math.max(0, Math.min(1, 1 - (progress - fadeOut) / fadeRange));
 }
 
-export function UIOverlay({ scrollProgress, onNavigate }: Props) {
+export function UIOverlay({ scrollProgress, onNavigate, selectedCardIndex, onClearCardSelection }: Props) {
   const { data: settings } = useGetSettings();
   const { data: projects } = useGetProjects();
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
   const contactEmail = settings?.contactEmail || "hello@v1v.in";
 
+  const projectList = projects || [];
+
+  useEffect(() => {
+    if (selectedCardIndex !== null && selectedCardIndex !== undefined && projectList.length > 0) {
+      const project = projectList[selectedCardIndex];
+      if (project) {
+        setSelectedProjectId(project.id);
+        if (onClearCardSelection) onClearCardSelection();
+      }
+    }
+  }, [selectedCardIndex, projectList, onClearCardSelection]);
+
   const scrollIndicatorOpacity = Math.max(0, 1 - scrollProgress * 8);
   const dnaLabelOpacity = clampOpacity(scrollProgress, 0.20, 0.25, 0.65);
   const workLabelOpacity = clampOpacity(scrollProgress, 0.25, 0.30, 0.70);
   const contactOpacity = clampOpacity(scrollProgress, 0.82, 0.86, 1.0);
-
-  const projectList = projects || [];
 
   const getProjectOpacity = (index: number) => {
     const base = 0.28 + index * 0.09;
