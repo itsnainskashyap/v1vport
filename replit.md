@@ -37,14 +37,15 @@ V1V Creative Studio website — a cinematic, full-screen immersive WebGL-first w
 ### Frontend Structure (Scroll-Driven 3D World)
 - `pages/Home.tsx` — Full-screen canvas with virtual scroll height (600vh). Lenis smooth scroll drives scrollProgress (0→1). No normal HTML sections — camera travels through 3D space.
 - `pages/Admin.tsx` — Password-protected admin dashboard (projects CRUD, settings, social links, theme colors)
-- `components/canvas/Scene.tsx` — Three.js R3F canvas with post-processing (bloom, chromatic aberration, sporadic glitch, vignette). Camera FOV 55, far plane 200. Includes WebGL detection (tests context creation, basic operations, and context-lost state) with automatic fallback. Catches `webglcontextlost` events at runtime via `onCreated` handler. CSS fallback: 300 multi-colored animated stars with parallax, 3 orbital rings with glow dots, animated nebula gradients, vignette edge darkening. Fallback responds to scroll progress for parallax depth.
-- `components/canvas/ScrollScene.tsx` — Camera-driven 3D orchestration. Camera travels z=8 → z=-75. Mouse parallax. 3D project cards with real texture maps. Shows/hides elements by scroll zones (hero→about→work→cage→lab).
-- `components/canvas/GlassTorusLogo.tsx` — Iridescent glass torus with embedded V1V logo mark (ExtrudeGeometry)
-- `components/canvas/RibbonSculpture.tsx` — Lemniscate wire sculpture (figure-8 TubeGeometry)
-- `components/canvas/ParticleField.tsx` — 10,000 particles (3,000 mobile) with per-frame CPU animation, additive blending
-- `components/canvas/CrystalSpine.tsx` — 24 icosahedron crystals + spine backbone at z=-32 zone
-- `components/canvas/CageTransition.tsx` — Industrial cage (20 bars + 6 rings + 800 particles) at z=-50 zone
-- `components/canvas/HexTunnel.tsx` — Honeycomb tunnel (24 rings × 12 cells) at z=-62 zone
+- `components/canvas/Scene.tsx` — Three.js R3F canvas with enhanced post-processing (bloom 1.2 intensity, chromatic aberration, sporadic glitch, vignette 0.7). Multiple lights (5 total: ambient + 3 point + 2 directional, mixed colors). CSS fallback: 400 multi-colored particles with 3-layer parallax, 4 orbital rings with glowing dots, animated nebula gradients. WebGL detection + context-loss handler.
+- `components/canvas/ScrollScene.tsx` — Camera travels z=8 → z=-75 with mouse parallax. Integrates ParticleText for "V1V" hero, GlassTorusLogo, RibbonSculpture, ProjectCards (larger 4.5x2.8 with glow frames + per-card point lights), CrystalSpine, CageTransition, HexTunnel, ParticleField. 15k particles desktop / 5k mobile.
+- `components/canvas/ParticleText.tsx` — **NEW** Canvas-sampled particle text. Draws text on hidden 2D canvas, samples pixel positions, creates thousands of particles that morph from scattered to text shape. Multi-color gradient (blue→purple→pink). Breathing animation.
+- `components/canvas/GlassTorusLogo.tsx` — Enhanced iridescent glass torus with 400 orbiting particles, multi-color point lights (3 total), animated emissive intensity
+- `components/canvas/RibbonSculpture.tsx` — Dual lemniscate ribbons (primary + secondary) with 300 trailing particles
+- `components/canvas/ParticleField.tsx` — 3-layer particle system: main field (15k, multi-color), dust layer (6k, subtle), streak layer (200, orbiting)
+- `components/canvas/CrystalSpine.tsx` — 36 icosahedron crystals (6 colors) with 600 glow particles, pulsing emissive, dual point lights
+- `components/canvas/CageTransition.tsx` — 28 bars + 8 rings + 1500 core particles + 300 energy orbit particles, emissive materials, 3 point lights
+- `components/canvas/HexTunnel.tsx` — 30 rings × 14 cells with emissive materials, 500 trailing orbit particles, dual depth lights
 - `components/UIOverlay.tsx` — Fixed-position HTML overlays that fade in/out based on scroll progress zones. Sections: hero, about, work categories, lab, contact form. Scroll progress indicator on right side.
 - `components/Navigation.tsx` — Pill-shaped "WORK — CONTACT" button (top-right, no hamburger menu)
 - `components/LoadingScreen.tsx` — Canvas-drawn progress ring with percentage counter
