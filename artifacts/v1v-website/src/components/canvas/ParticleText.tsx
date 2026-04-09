@@ -11,6 +11,24 @@ interface Props {
   color1?: string;
   color2?: string;
   color3?: string;
+  fontSize?: number;
+}
+
+function createCircleTexture(): THREE.Texture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 32;
+  canvas.height = 32;
+  const ctx = canvas.getContext("2d")!;
+  const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+  gradient.addColorStop(0, "rgba(255,255,255,1)");
+  gradient.addColorStop(0.3, "rgba(255,255,255,0.9)");
+  gradient.addColorStop(0.6, "rgba(255,255,255,0.4)");
+  gradient.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 32, 32);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.needsUpdate = true;
+  return tex;
 }
 
 function sampleTextPositions(
@@ -28,7 +46,6 @@ function sampleTextPositions(
 
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
   ctx.fillStyle = "#fff";
   ctx.font = `900 ${fontSize}px Arial, Helvetica, sans-serif`;
   ctx.textAlign = "center";
@@ -39,9 +56,8 @@ function sampleTextPositions(
   const pixels = imageData.data;
 
   const validPositions: { x: number; y: number }[] = [];
-  const step = 2;
-  for (let y = 0; y < canvasHeight; y += step) {
-    for (let x = 0; x < canvasWidth; x += step) {
+  for (let y = 0; y < canvasHeight; y += 1) {
+    for (let x = 0; x < canvasWidth; x += 1) {
       const i = (y * canvasWidth + x) * 4;
       if (pixels[i] > 128) {
         validPositions.push({ x, y });
@@ -51,9 +67,14 @@ function sampleTextPositions(
 
   const selected: { x: number; y: number }[] = [];
   const count = Math.min(maxParticles, validPositions.length);
+  const step = Math.max(1, Math.floor(validPositions.length / count));
   for (let i = 0; i < count; i++) {
-    const idx = Math.floor(Math.random() * validPositions.length);
-    selected.push(validPositions[idx]);
+    const idx = (i * step) % validPositions.length;
+    const pos = validPositions[idx];
+    selected.push({
+      x: pos.x + (Math.random() - 0.5) * 0.8,
+      y: pos.y + (Math.random() - 0.5) * 0.8,
+    });
   }
 
   return selected;
@@ -64,17 +85,19 @@ export function ParticleText({
   opacity,
   position = [0, 0, 0],
   size = 4,
-  particleCount = 8000,
-  color1 = "#88ccff",
-  color2 = "#aa88ff",
-  color3 = "#ff88cc",
+  particleCount = 12000,
+  color1 = "#55aaff",
+  color2 = "#aa55ff",
+  color3 = "#ff55aa",
+  fontSize = 200,
 }: Props) {
   const pointsRef = useRef<THREE.Points>(null);
   const [ready, setReady] = useState(false);
 
-  const canvasW = 512;
-  const canvasH = 256;
-  const fontSize = 180;
+  const canvasW = 600;
+  const canvasH = 300;
+
+  const circleMap = useMemo(() => createCircleTexture(), []);
 
   const data = useMemo(() => {
     const textPositions = sampleTextPositions(text, particleCount, canvasW, canvasH, fontSize);
@@ -84,7 +107,6 @@ export function ParticleText({
     const positions = new Float32Array(count * 3);
     const targetPositions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
-    const sizes = new Float32Array(count);
     const randomOffsets = new Float32Array(count * 3);
 
     const scaleX = size / canvasW;
@@ -98,44 +120,44 @@ export function ParticleText({
       const i3 = i * 3;
       const tx = (textPositions[i].x - canvasW / 2) * scaleX;
       const ty = -(textPositions[i].y - canvasH / 2) * scaleY;
-      const tz = (Math.random() - 0.5) * 0.3;
+      const tz = (Math.random() - 0.5) * 0.15;
 
       targetPositions[i3] = tx;
       targetPositions[i3 + 1] = ty;
       targetPositions[i3 + 2] = tz;
 
       const angle = Math.random() * Math.PI * 2;
-      const dist = 3 + Math.random() * 8;
+      const dist = 2 + Math.random() * 6;
       positions[i3] = Math.cos(angle) * dist;
       positions[i3 + 1] = Math.sin(angle) * dist;
-      positions[i3 + 2] = (Math.random() - 0.5) * 10;
+      positions[i3 + 2] = (Math.random() - 0.5) * 8;
 
       randomOffsets[i3] = Math.random() * 10;
       randomOffsets[i3 + 1] = Math.random() * 10;
       randomOffsets[i3 + 2] = Math.random() * 10;
 
-      const colorT = Math.random();
+      const normalizedX = (textPositions[i].x / canvasW);
       let color: THREE.Color;
-      if (colorT < 0.4) {
-        color = c1.clone().lerp(c2, colorT / 0.4);
-      } else if (colorT < 0.7) {
-        color = c2.clone().lerp(c3, (colorT - 0.4) / 0.3);
+      if (normalizedX < 0.35) {
+        color = c1.clone().lerp(c2, normalizedX / 0.35);
+      } else if (normalizedX < 0.65) {
+        color = c2.clone().lerp(c3, (normalizedX - 0.35) / 0.3);
       } else {
-        color = c3.clone().lerp(c1, (colorT - 0.7) / 0.3);
+        color = c3.clone().lerp(c1, (normalizedX - 0.65) / 0.35);
       }
-      colors[i3] = color.r;
-      colors[i3 + 1] = color.g;
-      colors[i3 + 2] = color.b;
 
-      sizes[i] = 0.015 + Math.random() * 0.035;
+      const brightness = 0.8 + Math.random() * 0.2;
+      colors[i3] = color.r * brightness;
+      colors[i3 + 1] = color.g * brightness;
+      colors[i3 + 2] = color.b * brightness;
     }
 
-    return { positions, targetPositions, colors, sizes, randomOffsets, count };
-  }, [text, particleCount, size, color1, color2, color3]);
+    return { positions, targetPositions, colors, randomOffsets, count };
+  }, [text, particleCount, size, color1, color2, color3, fontSize]);
 
   useEffect(() => {
     if (data) {
-      const timer = setTimeout(() => setReady(true), 100);
+      const timer = setTimeout(() => setReady(true), 200);
       return () => clearTimeout(timer);
     }
     return undefined;
@@ -147,7 +169,7 @@ export function ParticleText({
     const pos = pointsRef.current.geometry.attributes.position;
     const arr = pos.array as Float32Array;
 
-    const morphSpeed = ready ? 0.025 : 0;
+    const morphSpeed = ready ? 0.03 : 0;
 
     for (let i = 0; i < data.count; i++) {
       const i3 = i * 3;
@@ -155,9 +177,9 @@ export function ParticleText({
       const ry = data.randomOffsets[i3 + 1];
       const rz = data.randomOffsets[i3 + 2];
 
-      const breatheX = Math.sin(t * 0.8 + rx) * 0.04;
-      const breatheY = Math.cos(t * 0.6 + ry) * 0.04;
-      const breatheZ = Math.sin(t * 0.5 + rz) * 0.02;
+      const breatheX = Math.sin(t * 0.6 + rx) * 0.02;
+      const breatheY = Math.cos(t * 0.5 + ry) * 0.02;
+      const breatheZ = Math.sin(t * 0.4 + rz) * 0.01;
 
       const targetX = data.targetPositions[i3] + breatheX;
       const targetY = data.targetPositions[i3 + 1] + breatheY;
@@ -180,10 +202,11 @@ export function ParticleText({
           <bufferAttribute attach="attributes-color" args={[data.colors, 3]} />
         </bufferGeometry>
         <pointsMaterial
-          size={0.04}
+          size={0.025}
+          map={circleMap}
           vertexColors
           transparent
-          opacity={opacity * 0.9}
+          opacity={opacity * 0.95}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
           sizeAttenuation

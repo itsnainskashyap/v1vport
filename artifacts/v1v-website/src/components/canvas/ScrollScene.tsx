@@ -2,20 +2,101 @@ import { useRef, useEffect, useMemo } from "react";
 import { useFrame, useThree, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 import { ParticleText } from "./ParticleText";
-import { GlassTorusLogo } from "./GlassTorusLogo";
-import { RibbonSculpture } from "./RibbonSculpture";
+import { DNAHelix } from "./DNAHelix";
 import { ParticleField } from "./ParticleField";
-import { HexTunnel } from "./HexTunnel";
-import { CrystalSpine } from "./CrystalSpine";
-import { CageTransition } from "./CageTransition";
 
 interface Props {
   scrollProgress: number;
+  handPosition?: { x: number; y: number } | null;
+}
+
+function createCircleTexture(): THREE.Texture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 32;
+  canvas.height = 32;
+  const ctx = canvas.getContext("2d")!;
+  const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+  gradient.addColorStop(0, "rgba(255,255,255,1)");
+  gradient.addColorStop(0.4, "rgba(255,255,255,0.6)");
+  gradient.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 32, 32);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.needsUpdate = true;
+  return tex;
+}
+
+function NebulaClouds() {
+  const ref = useRef<THREE.Points>(null);
+  const circleMap = useMemo(() => createCircleTexture(), []);
+
+  const data = useMemo(() => {
+    const count = 200;
+    const positions = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    const basePositions = new Float32Array(count * 3);
+
+    for (let i = 0; i < count; i++) {
+      const i3 = i * 3;
+      const x = (Math.random() - 0.5) * 50;
+      const y = (Math.random() - 0.5) * 30;
+      const z = (Math.random() - 0.5) * 120;
+      positions[i3] = x;
+      positions[i3 + 1] = y;
+      positions[i3 + 2] = z;
+      basePositions[i3] = x;
+      basePositions[i3 + 1] = y;
+      basePositions[i3 + 2] = z;
+
+      const t = Math.random();
+      if (t < 0.3) {
+        colors[i3] = 0.1; colors[i3 + 1] = 0.15; colors[i3 + 2] = 0.4;
+      } else if (t < 0.6) {
+        colors[i3] = 0.2; colors[i3 + 1] = 0.08; colors[i3 + 2] = 0.35;
+      } else {
+        colors[i3] = 0.15; colors[i3 + 1] = 0.05; colors[i3 + 2] = 0.2;
+      }
+    }
+
+    return { positions, basePositions, colors, count };
+  }, []);
+
+  useFrame((state) => {
+    if (!ref.current) return;
+    const t = state.clock.elapsedTime;
+    const pos = ref.current.geometry.attributes.position;
+    const arr = pos.array as Float32Array;
+    for (let i = 0; i < data.count; i++) {
+      const i3 = i * 3;
+      arr[i3] = data.basePositions[i3] + Math.sin(t * 0.03 + i) * 2;
+      arr[i3 + 1] = data.basePositions[i3 + 1] + Math.cos(t * 0.02 + i * 0.5) * 1;
+      arr[i3 + 2] = data.basePositions[i3 + 2];
+    }
+    pos.needsUpdate = true;
+  });
+
+  return (
+    <points ref={ref}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[data.positions, 3]} />
+        <bufferAttribute attach="attributes-color" args={[data.colors, 3]} />
+      </bufferGeometry>
+      <pointsMaterial
+        size={3.0}
+        map={circleMap}
+        vertexColors
+        transparent
+        opacity={0.15}
+        blending={THREE.AdditiveBlending}
+        depthWrite={false}
+        sizeAttenuation
+      />
+    </points>
+  );
 }
 
 function ProjectCards({ scrollProgress }: { scrollProgress: number }) {
   const groupRef = useRef<THREE.Group>(null);
-  const frameRefs = useRef<THREE.Mesh[]>([]);
 
   const projectTextures = [
     "/projects/prometheus.png",
@@ -31,79 +112,71 @@ function ProjectCards({ scrollProgress }: { scrollProgress: number }) {
   );
 
   const cards = useMemo(() => {
-    const items: { pos: [number, number, number]; rot: [number, number, number]; scale: [number, number, number]; title: string }[] = [
-      { pos: [-3.5, 1.0, -30], rot: [0, 0.2, 0.02], scale: [4.5, 2.8, 1], title: "PROMETHEUS" },
-      { pos: [3.5, -0.5, -34], rot: [0, -0.2, -0.01], scale: [4.2, 2.6, 1], title: "E.C.H.O." },
-      { pos: [-2.5, 0.5, -38], rot: [0, 0.15, -0.02], scale: [4.8, 3.0, 1], title: "PATRONUS" },
-      { pos: [4.0, 1.2, -42], rot: [0, -0.25, 0.01], scale: [4.0, 2.5, 1], title: "MAISON NOIR" },
-      { pos: [-3.0, -0.8, -46], rot: [0, 0.18, 0.02], scale: [4.5, 2.8, 1], title: "STELLAR" },
+    return [
+      { pos: [-4.0, 0.8, -38] as [number, number, number], rot: [0, 0.2, 0.02] as [number, number, number], scale: [5.0, 3.1, 1] as [number, number, number] },
+      { pos: [4.0, -0.5, -44] as [number, number, number], rot: [0, -0.2, -0.01] as [number, number, number], scale: [4.8, 3.0, 1] as [number, number, number] },
+      { pos: [-3.5, 0.3, -50] as [number, number, number], rot: [0, 0.15, -0.02] as [number, number, number], scale: [5.2, 3.2, 1] as [number, number, number] },
+      { pos: [4.5, 1.0, -56] as [number, number, number], rot: [0, -0.22, 0.01] as [number, number, number], scale: [4.6, 2.9, 1] as [number, number, number] },
+      { pos: [-3.0, -0.6, -62] as [number, number, number], rot: [0, 0.18, 0.02] as [number, number, number], scale: [5.0, 3.1, 1] as [number, number, number] },
     ];
-    return items;
   }, []);
 
   useFrame((state) => {
     if (!groupRef.current) return;
     const t = state.clock.elapsedTime;
-    groupRef.current.children.forEach((child, i) => {
-      if (i >= cards.length) return;
-      child.position.y = cards[i].pos[1] + Math.sin(t * 0.4 + i * 1.5) * 0.2;
-      child.rotation.y = cards[i].rot[1] + Math.sin(t * 0.25 + i * 0.9) * 0.03;
-    });
+    const children = groupRef.current.children;
+    for (let i = 0; i < cards.length; i++) {
+      if (!children[i]) continue;
+      children[i].position.y = cards[i].pos[1] + Math.sin(t * 0.35 + i * 1.8) * 0.25;
+      children[i].rotation.y = cards[i].rot[1] + Math.sin(t * 0.2 + i * 1.2) * 0.04;
+    }
   });
 
-  const workZoneOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.25) * 5)) * Math.max(0, 1 - (scrollProgress - 0.55) * 4);
+  const getCardOpacity = (cardZ: number) => {
+    const cameraZ = 8 + (8 - (-75)) * scrollProgress * -1;
+    const dist = Math.abs(cameraZ - cardZ);
+    if (dist > 25) return 0;
+    if (dist > 18) return (25 - dist) / 7;
+    return 1;
+  };
 
   return (
-    <group ref={groupRef} visible={workZoneOpacity > 0.01}>
-      {cards.map((card, i) => (
-        <group key={i} position={card.pos} rotation={card.rot}>
-          <mesh>
-            <planeGeometry args={[card.scale[0], card.scale[1]]} />
-            <meshStandardMaterial
-              map={textures[i]}
-              transparent
-              opacity={workZoneOpacity * 0.95}
-              roughness={0.2}
-              metalness={0.15}
-              side={THREE.DoubleSide}
-              emissive="#111111"
-              emissiveIntensity={0.1}
-            />
-          </mesh>
+    <group ref={groupRef}>
+      {cards.map((card, i) => {
+        const cardOpacity = getCardOpacity(card.pos[2]);
+        return (
+          <group key={i} position={card.pos} rotation={card.rot} visible={cardOpacity > 0.01}>
+            <mesh>
+              <planeGeometry args={[card.scale[0], card.scale[1]]} />
+              <meshStandardMaterial
+                map={textures[i]}
+                transparent
+                opacity={cardOpacity * 0.95}
+                roughness={0.15}
+                metalness={0.1}
+                side={THREE.DoubleSide}
+              />
+            </mesh>
 
-          <mesh position={[0, 0, -0.01]}>
-            <planeGeometry args={[card.scale[0] + 0.15, card.scale[1] + 0.15]} />
-            <meshBasicMaterial
-              color="#4488cc"
-              transparent
-              opacity={workZoneOpacity * 0.08}
-              side={THREE.DoubleSide}
-            />
-          </mesh>
+            <mesh position={[0, 0, -0.02]}>
+              <planeGeometry args={[card.scale[0] + 0.2, card.scale[1] + 0.2]} />
+              <meshBasicMaterial
+                color="#55aaff"
+                transparent
+                opacity={cardOpacity * 0.06}
+                side={THREE.DoubleSide}
+              />
+            </mesh>
 
-          <mesh position={[0, 0, -0.02]}>
-            <planeGeometry args={[card.scale[0] + 0.4, card.scale[1] + 0.4]} />
-            <meshBasicMaterial
-              color="#223344"
-              transparent
-              opacity={workZoneOpacity * 0.04}
-              side={THREE.DoubleSide}
-            />
-          </mesh>
-
-          <pointLight
-            position={[0, 0, 1]}
-            intensity={0.4 * workZoneOpacity}
-            color="#5599cc"
-            distance={5}
-          />
-        </group>
-      ))}
+            <pointLight position={[0, 0, 1.5]} intensity={0.5 * cardOpacity} color="#5599cc" distance={6} />
+          </group>
+        );
+      })}
     </group>
   );
 }
 
-export function ScrollScene({ scrollProgress }: Props) {
+export function ScrollScene({ scrollProgress, handPosition }: Props) {
   const { camera } = useThree();
   const mouse = useRef({ x: 0, y: 0 });
   const smoothProgress = useRef(0);
@@ -126,29 +199,33 @@ export function ScrollScene({ scrollProgress }: Props) {
     const endZ = -75;
     const cameraZ = startZ + (endZ - startZ) * p;
     const cameraY = Math.sin(p * Math.PI * 0.5) * 2.0;
-    const cameraX = Math.sin(p * Math.PI * 2) * 1.0;
+    const cameraX = Math.sin(p * Math.PI * 2) * 1.2;
 
-    const parallaxX = mouse.current.x * 0.5;
-    const parallaxY = mouse.current.y * 0.3;
+    let parallaxX = mouse.current.x * 0.5;
+    let parallaxY = mouse.current.y * 0.3;
+
+    if (handPosition) {
+      parallaxX = handPosition.x * 1.5;
+      parallaxY = handPosition.y * 1.0;
+    }
 
     camera.position.x = THREE.MathUtils.lerp(camera.position.x, cameraX + parallaxX, 0.03);
     camera.position.y = THREE.MathUtils.lerp(camera.position.y, cameraY + parallaxY, 0.03);
     camera.position.z = THREE.MathUtils.lerp(camera.position.z, cameraZ, 0.04);
 
     cameraTarget.current.set(
-      camera.position.x * 0.25,
-      camera.position.y * 0.25,
+      camera.position.x * 0.2,
+      camera.position.y * 0.2,
       camera.position.z - 12
     );
     camera.lookAt(cameraTarget.current);
   });
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
   const heroOpacity = Math.max(0, 1 - scrollProgress * 4);
-  const aboutOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.12) * 6)) * Math.max(0, 1 - (scrollProgress - 0.28) * 5);
-  const workOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.28) * 5)) * Math.max(0, 1 - (scrollProgress - 0.55) * 4);
-  const cageOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.52) * 5)) * Math.max(0, 1 - (scrollProgress - 0.7) * 5);
-  const labOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.65) * 5)) * Math.max(0, 1 - (scrollProgress - 0.85) * 5);
+  const dnaOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.2) * 5)) * Math.max(0, 1 - (scrollProgress - 0.55) * 4);
+  const contactOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.82) * 5));
 
   return (
     <>
@@ -156,46 +233,50 @@ export function ScrollScene({ scrollProgress }: Props) {
         <ParticleText
           text="V1V"
           opacity={heroOpacity}
-          position={[0, 0.3, 0]}
-          size={5}
-          particleCount={isMobile ? 4000 : 10000}
+          position={[0, 0.5, 0]}
+          size={5.5}
+          particleCount={isMobile ? 5000 : 15000}
           color1="#55aaff"
-          color2="#aa66ff"
-          color3="#ff66aa"
+          color2="#aa55ff"
+          color3="#ff55aa"
+          fontSize={220}
         />
-        <GlassTorusLogo opacity={heroOpacity} />
-        <RibbonSculpture opacity={heroOpacity * 0.7} />
-      </group>
-
-      <group position={[0, 0, -18]} visible={aboutOpacity > 0.01}>
         <ParticleText
-          text="V1V"
-          opacity={aboutOpacity * 0.5}
-          position={[3, 0, 0]}
-          size={3}
-          particleCount={isMobile ? 2000 : 5000}
+          text="CREATIVE DIGITAL EXPERIENCES"
+          opacity={heroOpacity * 0.7}
+          position={[0, -1.3, 0]}
+          size={6}
+          particleCount={isMobile ? 3000 : 8000}
           color1="#4488cc"
           color2="#8855cc"
           color3="#cc5588"
+          fontSize={32}
         />
-        <GlassTorusLogo opacity={aboutOpacity * 0.6} />
       </group>
 
-      <group visible={workOpacity > 0.01}>
-        <CrystalSpine progress={scrollProgress} opacity={workOpacity} />
+      <group visible={dnaOpacity > 0.01}>
+        <DNAHelix scrollProgress={scrollProgress} opacity={dnaOpacity} />
       </group>
 
       <ProjectCards scrollProgress={scrollProgress} />
 
-      <group visible={cageOpacity > 0.01}>
-        <CageTransition progress={scrollProgress} opacity={cageOpacity} />
+      <group visible={contactOpacity > 0.01}>
+        <ParticleText
+          text="GET IN TOUCH"
+          opacity={contactOpacity * 0.6}
+          position={[0, 0.5, -70]}
+          size={5}
+          particleCount={isMobile ? 2000 : 6000}
+          color1="#55aaff"
+          color2="#55ffaa"
+          color3="#ffaa55"
+          fontSize={50}
+        />
       </group>
 
-      <group visible={labOpacity > 0.01}>
-        <HexTunnel progress={scrollProgress} opacity={labOpacity} />
-      </group>
+      <NebulaClouds />
 
-      <ParticleField count={isMobile ? 5000 : 15000} scrollProgress={scrollProgress} />
+      <ParticleField count={isMobile ? 5000 : 18000} scrollProgress={scrollProgress} />
     </>
   );
 }

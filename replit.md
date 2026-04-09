@@ -4,7 +4,7 @@
 
 pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
 
-V1V Creative Studio website — a cinematic, full-screen immersive WebGL-first website for a creative digital studio (v1v.in). The entire experience is driven by a Three.js 3D canvas where scroll moves the camera through a continuous 3D world. HTML text overlays fade in/out based on camera position. Features a password-protected admin panel.
+V1V Creative Studio website — a cinematic, full-screen immersive WebGL-first website for a creative digital studio (v1v.in). The entire experience is driven by a Three.js 3D canvas where scroll moves the camera through a continuous 3D world. ALL decorative text is rendered as micro round particle clouds (V1V title, tagline, contact header). Features a DNA helix that rotates on scroll, hand gesture camera tracking via webcam, and cinematic post-processing. Password-protected admin panel.
 
 ## Stack
 
@@ -19,6 +19,7 @@ V1V Creative Studio website — a cinematic, full-screen immersive WebGL-first w
 - **Build**: esbuild (CJS bundle)
 - **Frontend**: React 19, Vite, Three.js, @react-three/fiber, @react-three/postprocessing, Framer Motion, GSAP, Lenis, TailwindCSS 4
 - **Routing**: wouter
+- **Hand tracking**: @mediapipe/tasks-vision (skin-color detection fallback)
 
 ## Artifacts
 
@@ -35,22 +36,22 @@ V1V Creative Studio website — a cinematic, full-screen immersive WebGL-first w
 ## Architecture
 
 ### Frontend Structure (Scroll-Driven 3D World)
-- `pages/Home.tsx` — Full-screen canvas with virtual scroll height (600vh). Lenis smooth scroll drives scrollProgress (0→1). No normal HTML sections — camera travels through 3D space.
+- `pages/Home.tsx` — Full-screen canvas with virtual scroll height (700vh). Lenis smooth scroll drives scrollProgress (0→1). Integrates HandGesture component for camera parallax via webcam.
 - `pages/Admin.tsx` — Password-protected admin dashboard (projects CRUD, settings, social links, theme colors)
-- `components/canvas/Scene.tsx` — Three.js R3F canvas with enhanced post-processing (bloom 1.2 intensity, chromatic aberration, sporadic glitch, vignette 0.7). Multiple lights (5 total: ambient + 3 point + 2 directional, mixed colors). CSS fallback: 400 multi-colored particles with 3-layer parallax, 4 orbital rings with glowing dots, animated nebula gradients. WebGL detection + context-loss handler.
-- `components/canvas/ScrollScene.tsx` — Camera travels z=8 → z=-75 with mouse parallax. Integrates ParticleText for "V1V" hero, GlassTorusLogo, RibbonSculpture, ProjectCards (larger 4.5x2.8 with glow frames + per-card point lights), CrystalSpine, CageTransition, HexTunnel, ParticleField. 15k particles desktop / 5k mobile.
-- `components/canvas/ParticleText.tsx` — **NEW** Canvas-sampled particle text. Draws text on hidden 2D canvas, samples pixel positions, creates thousands of particles that morph from scattered to text shape. Multi-color gradient (blue→purple→pink). Breathing animation.
-- `components/canvas/GlassTorusLogo.tsx` — Enhanced iridescent glass torus with 400 orbiting particles, multi-color point lights (3 total), animated emissive intensity
-- `components/canvas/RibbonSculpture.tsx` — Dual lemniscate ribbons (primary + secondary) with 300 trailing particles
-- `components/canvas/ParticleField.tsx` — 3-layer particle system: main field (15k, multi-color), dust layer (6k, subtle), streak layer (200, orbiting)
-- `components/canvas/CrystalSpine.tsx` — 36 icosahedron crystals (6 colors) with 600 glow particles, pulsing emissive, dual point lights
-- `components/canvas/CageTransition.tsx` — 28 bars + 8 rings + 1500 core particles + 300 energy orbit particles, emissive materials, 3 point lights
-- `components/canvas/HexTunnel.tsx` — 30 rings × 14 cells with emissive materials, 500 trailing orbit particles, dual depth lights
-- `components/UIOverlay.tsx` — Fixed-position HTML overlays that fade in/out based on scroll progress zones. Sections: hero, about, work categories, lab, contact form. Scroll progress indicator on right side.
-- `components/Navigation.tsx` — Pill-shaped "WORK — CONTACT" button (top-right, no hamburger menu)
-- `components/LoadingScreen.tsx` — Canvas-drawn progress ring with percentage counter
+- `components/canvas/Scene.tsx` — Three.js R3F canvas with cinematic post-processing (bloom 1.5, chromatic aberration, sporadic glitch, vignette 0.75). CSS fallback: 500 multi-colored particles with 3-layer parallax, 4 orbital rings, animated nebula gradients. WebGL detection + context-loss handler.
+- `components/canvas/ScrollScene.tsx` — Camera travels z=8 → z=-75 with mouse/hand parallax. Integrates: ParticleText for "V1V" hero + "CREATIVE DIGITAL EXPERIENCES" tagline + "GET IN TOUCH" contact, DNAHelix (z=-32), ProjectCards (5 cards spaced z=-38 to z=-62 with glow borders), NebulaClouds, ParticleField (18k particles). All decorative text is particle-based, no HTML text overlays.
+- `components/canvas/ParticleText.tsx` — Canvas-sampled micro round particle text. Uses circular gradient texture (32x32 canvas) for round particles instead of square default. Particles morph from scattered to text shape with breathing animation. Multi-color gradient (blue→purple→pink). Configurable size, count, colors, fontSize.
+- `components/canvas/DNAHelix.tsx` — Double helix DNA structure with two TubeGeometry strands (blue + red), 40 base pairs with connecting cylinders and sphere nodes (4 colors), 2000 floating particles. Rotates faster when user scrolls into its zone (scrollProgress 0.25-0.55). 3 point lights.
+- `components/canvas/ParticleField.tsx` — 2-layer micro round particle system: main field (18k, multi-color with circular texture) + nebula layer (5.4k, larger soft particles). All particles use circular canvas texture for round appearance.
+- `components/HandGesture.tsx` — Camera permission prompt ("For hand gesture, allow camera access") with ALLOW/SKIP buttons. On allow: starts webcam, processes frames for skin-color detection, maps detected hand centroid to camera parallax (-1 to 1 range with smoothing). Shows small camera preview in bottom-right corner.
+- `components/UIOverlay.tsx` — Minimal fixed-position HTML overlays. Only small labels: "SCROLL" indicator, "DNA OF CREATIVITY" vertical label, "SELECTED WORK" project list, contact form, copyright. NO decorative V1V text or tagline — those are particle-based in 3D.
+- `components/Navigation.tsx` — Pill-shaped "WORK — CONTACT" button (top-right)
+- `components/LoadingScreen.tsx` — Canvas-drawn progress ring with percentage counter (1.5s)
 - `components/CustomCursor.tsx` — Neon dot + ring cursor (hidden on touch devices)
-- `components/ProjectModal.tsx` — Project detail modal
+- `components/ProjectModal.tsx` — Cinematic project detail modal with spring animations, rounded borders, gradient overlays, staggered content reveal. Close button with rotation animation.
+
+### Removed 3D Elements (still in codebase but not used)
+- `GlassTorusLogo.tsx`, `RibbonSculpture.tsx`, `CrystalSpine.tsx`, `CageTransition.tsx`, `HexTunnel.tsx`
 
 ### Demo Content
 - 5 AI-generated project images at `public/projects/` (prometheus, echo, patronus, maison-noir, stellar)
