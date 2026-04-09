@@ -220,15 +220,23 @@ export function verifyPassword(password: string): boolean {
 }
 
 export function generateToken(): string {
-  return Buffer.from(`v1v-admin-${Date.now()}-${Math.random().toString(36).slice(2)}`).toString("base64");
+  const { randomBytes } = require("crypto") as typeof import("crypto");
+  return randomBytes(32).toString("base64url");
 }
 
-const activeTokens = new Set<string>();
+const TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
+const activeTokens = new Map<string, number>();
 
 export function storeToken(token: string) {
-  activeTokens.add(token);
+  activeTokens.set(token, Date.now());
 }
 
 export function isValidToken(token: string): boolean {
-  return activeTokens.has(token);
+  const created = activeTokens.get(token);
+  if (created === undefined) return false;
+  if (Date.now() - created > TOKEN_TTL_MS) {
+    activeTokens.delete(token);
+    return false;
+  }
+  return true;
 }

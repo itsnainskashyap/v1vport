@@ -4,7 +4,7 @@
 
 pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
 
-V1V Creative Studio website — a cinematic, full-screen immersive website for a creative digital studio (v1v.in). Features a Three.js 3D WebGL background with procedurally generated models, GSAP ScrollTrigger + Lenis smooth scrolling, Pointer Events gesture support, and a password-protected admin panel.
+V1V Creative Studio website — a cinematic, full-screen immersive WebGL-first website for a creative digital studio (v1v.in). The entire experience is driven by a Three.js 3D canvas where scroll moves the camera through a continuous 3D world. HTML text overlays fade in/out based on camera position. Features a password-protected admin panel.
 
 ## Stack
 
@@ -17,13 +17,13 @@ V1V Creative Studio website — a cinematic, full-screen immersive website for a
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
-- **Frontend**: React 19, Vite, Three.js, @react-three/fiber, @react-three/postprocessing, Framer Motion, GSAP + ScrollTrigger, Lenis, TailwindCSS 4
+- **Frontend**: React 19, Vite, Three.js, @react-three/fiber, @react-three/postprocessing, Framer Motion, GSAP, Lenis, TailwindCSS 4
 - **Routing**: wouter
 
 ## Artifacts
 
 - **API Server** (`artifacts/api-server`): Express API with JSON file persistence. Routes: `/api/auth/login`, `/api/auth/verify`, `/api/projects`, `/api/projects/:id`, `/api/settings`. Admin password: `v1vadmin123`.
-- **V1V Website** (`artifacts/v1v-website`): Main frontend at `/`. Features hero with 3D canvas, about section, projects grid, lab section, contact form. Admin panel at `/admin`.
+- **V1V Website** (`artifacts/v1v-website`): Main frontend at `/`. WebGL-first immersive 3D experience with scroll-driven camera. Admin panel at `/admin`.
 
 ## Key Commands
 
@@ -34,25 +34,29 @@ V1V Creative Studio website — a cinematic, full-screen immersive website for a
 
 ## Architecture
 
-### Frontend Structure
-- `pages/Home.tsx` — Main page with fixed 3D canvas + scrolling HTML overlay. Wires scrollProgress (0-1) from Lenis scroll into Scene.tsx. GSAP ScrollTrigger animates section reveals. Pointer Events gesture layer handles swipe-to-scroll and pinch-to-navigate.
-- `pages/Admin.tsx` — Password-protected admin dashboard (projects CRUD, settings)
-- `components/LoadingScreen.tsx` — Animated loading screen with canvas-drawn 3D progress ring, percentage counter, and fade-out transition
-- `components/canvas/Scene.tsx` — Three.js R3F canvas with post-processing (bloom, chromatic aberration, glitch, vignette), CanvasErrorBoundary, WebGL fallback
-- `components/canvas/ScrollScene.tsx` — Main 3D composition orchestrated by scrollProgress (replaces old HeroScene.tsx). Contains glass torus, ribbon sculpture, particles with scroll-driven transitions.
-- `components/canvas/HexTunnel.tsx` — Procedural hex tunnel geometry (appears in middle scroll range)
-- `components/canvas/CrystalSpine.tsx` — Crystal spine backbone with icosahedra
-- `components/canvas/CageTransition.tsx` — Industrial cage transition effect
-- `components/canvas/GlassTorusLogo.tsx` — Procedural glass torus ring
-- `components/canvas/RibbonSculpture.tsx` — Lemniscate wire sculpture
-- `components/canvas/ParticleField.tsx` — Animated particle system (6000 desktop / 2000 mobile)
-- `components/UIOverlay.tsx` — All HTML sections (hero, about, work, lab, contact) with data-gsap-section attributes
-- `components/Navigation.tsx` — Fixed nav with fullscreen overlay menu
+### Frontend Structure (Scroll-Driven 3D World)
+- `pages/Home.tsx` — Full-screen canvas with virtual scroll height (600vh). Lenis smooth scroll drives scrollProgress (0→1). No normal HTML sections — camera travels through 3D space.
+- `pages/Admin.tsx` — Password-protected admin dashboard (projects CRUD, settings, social links, theme colors)
+- `components/canvas/Scene.tsx` — Three.js R3F canvas with post-processing (bloom, chromatic aberration, sporadic glitch, vignette). Camera FOV 55, far plane 200.
+- `components/canvas/ScrollScene.tsx` — Camera-driven 3D orchestration. Camera travels z=8 → z=-75. Mouse parallax. 3D project cards with real texture maps. Shows/hides elements by scroll zones (hero→about→work→cage→lab).
+- `components/canvas/GlassTorusLogo.tsx` — Iridescent glass torus with embedded V1V logo mark (ExtrudeGeometry)
+- `components/canvas/RibbonSculpture.tsx` — Lemniscate wire sculpture (figure-8 TubeGeometry)
+- `components/canvas/ParticleField.tsx` — 10,000 particles (3,000 mobile) with per-frame CPU animation, additive blending
+- `components/canvas/CrystalSpine.tsx` — 24 icosahedron crystals + spine backbone at z=-32 zone
+- `components/canvas/CageTransition.tsx` — Industrial cage (20 bars + 6 rings + 800 particles) at z=-50 zone
+- `components/canvas/HexTunnel.tsx` — Honeycomb tunnel (24 rings × 12 cells) at z=-62 zone
+- `components/UIOverlay.tsx` — Fixed-position HTML overlays that fade in/out based on scroll progress zones. Sections: hero, about, work categories, lab, contact form. Scroll progress indicator on right side.
+- `components/Navigation.tsx` — Pill-shaped "WORK — CONTACT" button (top-right, no hamburger menu)
+- `components/LoadingScreen.tsx` — Canvas-drawn progress ring with percentage counter
+- `components/CustomCursor.tsx` — Neon dot + ring cursor (hidden on touch devices)
 - `components/ProjectModal.tsx` — Project detail modal
-- `components/CustomCursor.tsx` — Neon dot + ring cursor (hidden on touch)
+
+### Demo Content
+- 5 AI-generated project images at `public/projects/` (prometheus, echo, patronus, maison-noir, stellar)
+- 5 seed projects in API store (PROMETHEUS, E.C.H.O., PATRONUS, NEURAL DRIFT, VOID RUNNER)
 
 ### API Structure
 - `store.ts` — JSON file persistence at `data/v1v-data.json` with seed data (5 projects)
-- `auth.ts` — Login/verify with in-memory token set
+- `auth.ts` — Login/verify with in-memory token set, 24h TTL, crypto.randomBytes(32)
 - `projects.ts` — Full CRUD for projects
-- `settings.ts` — Get/update site settings
+- `settings.ts` — Get/update site settings (social links, theme colors, hero/about text)

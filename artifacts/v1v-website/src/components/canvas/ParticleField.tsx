@@ -10,20 +10,22 @@ interface Props {
 export function ParticleField({ count, scrollProgress }: Props) {
   const pointsRef = useRef<THREE.Points>(null);
 
-  const { positions, basePositions, colors } = useMemo(() => {
+  const { positions, basePositions, colors, sizes } = useMemo(() => {
     const positions = new Float32Array(count * 3);
     const basePositions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
+    const sizes = new Float32Array(count);
 
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
-      const radius = 3 + Math.random() * 14;
+      const radius = 2 + Math.random() * 18;
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
+      const zSpread = (Math.random() - 0.5) * 100;
 
       const x = radius * Math.sin(phi) * Math.cos(theta);
       const y = radius * Math.sin(phi) * Math.sin(theta);
-      const z = radius * Math.cos(phi);
+      const z = zSpread;
       positions[i3] = x;
       positions[i3 + 1] = y;
       positions[i3 + 2] = z;
@@ -32,18 +34,22 @@ export function ParticleField({ count, scrollProgress }: Props) {
       basePositions[i3 + 2] = z;
 
       const colorChoice = Math.random();
-      if (colorChoice < 0.4) {
-        colors[i3] = 0.2; colors[i3 + 1] = 0.8; colors[i3 + 2] = 0.6;
-      } else if (colorChoice < 0.7) {
-        colors[i3] = 0.0; colors[i3 + 1] = 0.9; colors[i3 + 2] = 1.0;
-      } else if (colorChoice < 0.85) {
-        colors[i3] = 0.9; colors[i3 + 1] = 0.75; colors[i3 + 2] = 0.2;
+      if (colorChoice < 0.35) {
+        colors[i3] = 0.3; colors[i3 + 1] = 0.55; colors[i3 + 2] = 0.4;
+      } else if (colorChoice < 0.55) {
+        colors[i3] = 0.25; colors[i3 + 1] = 0.65; colors[i3 + 2] = 0.5;
+      } else if (colorChoice < 0.75) {
+        colors[i3] = 0.7; colors[i3 + 1] = 0.6; colors[i3 + 2] = 0.25;
+      } else if (colorChoice < 0.88) {
+        colors[i3] = 0.5; colors[i3 + 1] = 0.35; colors[i3 + 2] = 0.6;
       } else {
-        colors[i3] = 0.55; colors[i3 + 1] = 0.36; colors[i3 + 2] = 0.96;
+        colors[i3] = 0.6; colors[i3 + 1] = 0.4; colors[i3 + 2] = 0.45;
       }
+
+      sizes[i] = 0.02 + Math.random() * 0.06;
     }
 
-    return { positions, basePositions, colors };
+    return { positions, basePositions, colors, sizes };
   }, [count]);
 
   useFrame((state) => {
@@ -54,33 +60,26 @@ export function ParticleField({ count, scrollProgress }: Props) {
 
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
-      const speed = 0.05 + (i % 7) * 0.008;
-      const scrollOffset = scrollProgress * 3;
-      arr[i3] = basePositions[i3] + Math.sin(t * speed + i) * 0.15;
-      arr[i3 + 1] = basePositions[i3 + 1] + Math.cos(t * speed * 0.7 + i * 0.5) * 0.15 - scrollOffset;
-      arr[i3 + 2] = basePositions[i3 + 2] + Math.sin(t * speed * 0.5 + i * 0.3) * 0.12;
+      const speed = 0.03 + (i % 11) * 0.005;
+      arr[i3] = basePositions[i3] + Math.sin(t * speed + i * 0.7) * 0.1;
+      arr[i3 + 1] = basePositions[i3 + 1] + Math.cos(t * speed * 0.6 + i * 0.3) * 0.1;
+      arr[i3 + 2] = basePositions[i3 + 2] + Math.sin(t * speed * 0.4 + i * 0.5) * 0.08;
     }
     pos.needsUpdate = true;
-    pointsRef.current.rotation.y = t * 0.01;
+    pointsRef.current.rotation.y = t * 0.003;
   });
 
   return (
     <points ref={pointsRef}>
       <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          args={[positions, 3]}
-        />
-        <bufferAttribute
-          attach="attributes-color"
-          args={[colors, 3]}
-        />
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.035}
+        size={0.04}
         vertexColors
         transparent
-        opacity={0.7}
+        opacity={0.55}
         blending={THREE.AdditiveBlending}
         depthWrite={false}
         sizeAttenuation

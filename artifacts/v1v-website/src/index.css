@@ -176,8 +176,10 @@
   * {
     @apply border-border;
   }
-  body {
-    @apply font-sans antialiased bg-background text-foreground;
+  html, body {
+    @apply font-sans antialiased;
+    background: #050510;
+    color: white;
     cursor: none;
     overflow-x: hidden;
   }
@@ -185,6 +187,16 @@
 
 html {
   scroll-behavior: auto;
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  display: none;
+}
+
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 ::selection {

@@ -9,67 +9,89 @@ interface Props {
 
 export function CageTransition({ progress, opacity }: Props) {
   const groupRef = useRef<THREE.Group>(null);
+  const particleRef = useRef<THREE.Points>(null);
 
-  const cageBars = useMemo(() => {
-    const bars: { start: THREE.Vector3; end: THREE.Vector3; color: string }[] = [];
-    const count = 24;
-    const radius = 2.0;
-    const height = 3.0;
+  const { verticalBars, rings, particlePositions } = useMemo(() => {
+    const verticalBars: THREE.Vector3[] = [];
+    const barCount = 20;
+    const radius = 2.5;
 
-    for (let i = 0; i < count; i++) {
-      const angle = (i / count) * Math.PI * 2;
-      const x = Math.cos(angle) * radius;
-      const z = Math.sin(angle) * radius;
-      bars.push({
-        start: new THREE.Vector3(x, -height / 2, z),
-        end: new THREE.Vector3(x, height / 2, z),
-        color: i % 3 === 0 ? "#00f0ff" : i % 3 === 1 ? "#8b5cf6" : "#f0c040",
-      });
+    for (let i = 0; i < barCount; i++) {
+      const angle = (i / barCount) * Math.PI * 2;
+      verticalBars.push(new THREE.Vector3(
+        Math.cos(angle) * radius,
+        0,
+        Math.sin(angle) * radius
+      ));
     }
 
-    for (let j = 0; j < 4; j++) {
-      const y = -height / 2 + (j + 1) * (height / 5);
-      for (let i = 0; i < count / 2; i++) {
-        const angle1 = (i / (count / 2)) * Math.PI * 2;
-        const angle2 = ((i + 1) / (count / 2)) * Math.PI * 2;
-        bars.push({
-          start: new THREE.Vector3(Math.cos(angle1) * radius, y, Math.sin(angle1) * radius),
-          end: new THREE.Vector3(Math.cos(angle2) * radius, y, Math.sin(angle2) * radius),
-          color: "#00f0ff",
-        });
-      }
+    const rings: { y: number; radius: number }[] = [];
+    for (let j = 0; j < 6; j++) {
+      rings.push({ y: -3 + j * 1.2, radius: radius + (j % 2) * 0.15 });
     }
 
-    return bars;
+    const particleCount = 800;
+    const particlePositions = new Float32Array(particleCount * 3);
+    for (let i = 0; i < particleCount; i++) {
+      const i3 = i * 3;
+      const r = Math.random() * 1.5;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      particlePositions[i3] = r * Math.sin(phi) * Math.cos(theta);
+      particlePositions[i3 + 1] = r * Math.sin(phi) * Math.sin(theta) - 0.5;
+      particlePositions[i3 + 2] = r * Math.cos(phi);
+    }
+
+    return { verticalBars, rings, particlePositions };
   }, []);
 
   useFrame((state) => {
     if (!groupRef.current) return;
     const t = state.clock.elapsedTime;
-    groupRef.current.rotation.y = t * 0.05;
-    const expandFactor = Math.sin(progress * Math.PI) * 0.3;
-    groupRef.current.scale.setScalar(0.8 + expandFactor);
+    groupRef.current.rotation.y = t * 0.03;
+
+    if (particleRef.current) {
+      const pos = particleRef.current.geometry.attributes.position;
+      const arr = pos.array as Float32Array;
+      for (let i = 0; i < arr.length / 3; i++) {
+        const i3 = i * 3;
+        arr[i3] = particlePositions[i3] + Math.sin(t * 0.6 + i * 0.15) * 0.08;
+        arr[i3 + 1] = particlePositions[i3 + 1] + Math.sin(t * 0.8 + i * 0.1) * 0.12;
+        arr[i3 + 2] = particlePositions[i3 + 2] + Math.cos(t * 0.5 + i * 0.2) * 0.06;
+      }
+      pos.needsUpdate = true;
+    }
   });
 
   return (
-    <group ref={groupRef}>
-      {cageBars.map((bar, i) => {
-        const dir = new THREE.Vector3().subVectors(bar.end, bar.start);
-        const len = dir.length();
-        const mid = new THREE.Vector3().addVectors(bar.start, bar.end).multiplyScalar(0.5);
-
-        return (
-          <mesh key={i} position={mid} quaternion={new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize())}>
-            <cylinderGeometry args={[0.008, 0.008, len, 4]} />
-            <meshBasicMaterial
-              color={bar.color}
-              transparent
-              opacity={opacity * 0.4}
-            />
-          </mesh>
-        );
-      })}
-      <pointLight position={[0, 0, 0]} intensity={0.6 * opacity} color="#8b5cf6" distance={8} />
+    <group ref={groupRef} position={[0, 0, -50]}>
+      {verticalBars.map((pos, i) => (
+        <mesh key={`bar-${i}`} position={[pos.x, 0, pos.z]}>
+          <cylinderGeometry args={[0.02, 0.02, 7, 6]} />
+          <meshBasicMaterial color="#334455" transparent opacity={opacity * 0.5} />
+        </mesh>
+      ))}
+      {rings.map((ring, j) => (
+        <mesh key={`ring-${j}`} position={[0, ring.y, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[ring.radius, 0.025, 8, 40]} />
+          <meshBasicMaterial color="#445566" transparent opacity={opacity * 0.4} />
+        </mesh>
+      ))}
+      <points ref={particleRef}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[particlePositions, 3]} />
+        </bufferGeometry>
+        <pointsMaterial
+          size={0.05}
+          color="#88bbdd"
+          transparent
+          opacity={opacity * 0.6}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+          sizeAttenuation
+        />
+      </points>
+      <pointLight position={[0, 0, 0]} intensity={0.8 * opacity} color="#5588aa" distance={8} />
     </group>
   );
 }

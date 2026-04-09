@@ -1,0 +1,32 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "PjQWIFQKL2EH2r5OPYjtp"
+uri = "file://artifacts/v1v-website/public/projects/prometheus.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "FyDPBR0Z5j1GR7QO0Shjh"
+uri = "file://artifacts/v1v-website/public/projects/echo.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "3bS_fpHYCCUj3F2KZimhX"
+uri = "file://artifacts/v1v-website/public/projects/patronus.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "er1W1Z5FuWQhMEwUm8e0V"
+uri = "file://artifacts/v1v-website/public/projects/maison-noir.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "fcvT2WvQed3eLkFfwTxas"
+uri = "file://artifacts/v1v-website/public/projects/stellar.png"
+type = "image"
+title = "generated_image"
