@@ -39,13 +39,14 @@ V1V Creative Studio website — a cinematic, full-screen immersive WebGL-first w
 ### Frontend Structure (Scroll-Driven 3D World)
 - `pages/Home.tsx` — Full-screen canvas with virtual scroll height (800vh). Lenis smooth scroll drives scrollProgress (0→1). Integrates CinematicIntro, SoundManager, HandGesture. Manages selectedCardIndex state for 3D DNA card clicks → project modal.
 - `pages/Admin.tsx` — Password-protected admin dashboard
-- `components/CinematicIntro.tsx` — Full-screen cinematic text sequence on load: 5 animated text slides with particle background ("Welcome to V1V Space", "Experience Something Unbelievable", "Where Creativity Meets Technology", "We Craft Digital Experiences", "Enter the World"). Has SKIP button and progress bar.
+- `components/CinematicIntro.tsx` — Full-screen cinematic intro with star warp speed effect (600 stars streaming from center with colored light trails), expanding energy rings, radial gradient overlays. 5 uniquely styled text slides: hero (scale-up), glow (gradient text + blur), split (slide from opposite sides), zoom (3x scale-in with blur), final (with underline reveal). Progress bar with percentage. V1V STUDIO branding. SKIP button. Each slide transitions with distinct Framer Motion animations.
 - `components/SoundManager.tsx` — Procedural ambient sound using Web Audio API. 3 sine pad oscillators (65Hz, 98Hz, 131Hz), bandpass-filtered noise atmosphere, LFO modulation. Volume reacts to scroll position (DNA section boost, contact fadeout). Mute/unmute button.
 - `components/canvas/Scene.tsx` — Three.js R3F canvas with cinematic post-processing (bloom 1.5, chromatic aberration, sporadic glitch, vignette 0.75). 6 lights. Fog 25-100. Passes onCardClick through to ScrollScene. CSS fallback.
 - `components/canvas/ScrollScene.tsx` — Camera travels z=8 → z=-80 with cinematic serpentine (sin×1.5 X, sin×0.8 Y). 11 text sections defined for camera auto-alignment. Texts appear/disappear sequentially: V1V hero → tagline → "WE BUILD THE FUTURE" → "DESIGN • CODE • MOTION" → "INNOVATION AT EVERY PIXEL" → "CRAFTING DIGITAL WORLDS" → [DNA zone] → "BRANDING • WEB • APP • 3D" → "FROM CONCEPT TO REALITY" → "IMMERSIVE EXPERIENCES" → "AWARD WINNING STUDIO" → "GET IN TOUCH". Content closer together for cinematic pacing.
 - `components/canvas/ParticleText.tsx` — Canvas-sampled micro round particle text. Sequential fade-in/fade-out per section.
 - `components/canvas/DNAHelix.tsx` — Dense realistic particle DNA: 3200 strand particles per helix (cyan + red with color variation), 240 base pairs × 18 dots (6 colors, variable width, mid-bulge), 1200 phosphate backbone particles per strand (outer ring), 3600 glow particles. Minor groove modulation for realism. 8 turns. Scroll-driven rotation + vertical position. 5 project cards orbiting the helix. Clickable cards with glow underlining.
 - `components/canvas/ParticleField.tsx` — 3-layer particle system: main field (22k), nebula (4.4k), dust (3.3k).
+- `components/canvas/Spaceship.tsx` — 3D fighter spaceship (FBX model with PBR textures). Flies ahead of the camera with smooth orbital motion (sinusoidal offsets). Banking and pitching based on velocity direction. Scales down near text sections to avoid obstructing content, scales up during transitions. Particle engine trail (300 particles) follows the ship. Uses @react-three/drei's useFBX loader with 4 material groups (Body, Front, Rear, Windows) each with PBR maps.
 - `components/canvas/FloatingImages.tsx` — 21 AI-generated decorative PNG images floating throughout the scene with additive blending and distance-based fade. Spread evenly from z=-3 to z=-77.
 - `components/HandGesture.tsx` — Camera permission prompt with ALLOW/SKIP. Skin-color detection with smoothing and debouncing.
 - `components/UIOverlay.tsx` — Scroll indicator ("SCROLL TO EXPLORE"), "DNA OF CREATIVITY" vertical label, "SELECTED WORK" project list with category+year, contact form, social links, gradient scroll progress bar. Project list items animate in with slide.
@@ -57,6 +58,7 @@ V1V Creative Studio website — a cinematic, full-screen immersive WebGL-first w
 ### Assets
 - 5 AI-generated project images at `public/projects/`
 - 21 AI-generated decorative images at `public/decorative/` (neural-brain, crystal-prism, circuit-sphere, code-fragments, dissolving-cube, digital-eye, holo-planet, neon-hand, crystal-diamond, dna-glow, light-butterfly, metal-sphere, light-rocket, portal-vortex, neon-astronaut, holo-crown, space-jellyfish, digital-phoenix, neon-compass, geo-heart, energy-bolt)
+- Fighter spaceship 3D model at `public/models/` — FBX mesh + 19 PBR texture maps (BaseColor, Normal, Metallic, Roughness, Emissive for Body/Front/Rear/Windows)
 - 5 seed projects in API store
 
 ### API Structure

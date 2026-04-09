@@ -1,10 +1,11 @@
-import { useRef, useEffect, useMemo } from "react";
+import { useRef, useEffect, useMemo, Suspense } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { ParticleText } from "./ParticleText";
 import { DNAHelix } from "./DNAHelix";
 import { ParticleField } from "./ParticleField";
 import { FloatingImages } from "./FloatingImages";
+import { Spaceship } from "./Spaceship";
 
 interface Props {
   scrollProgress: number;
@@ -288,6 +289,10 @@ export function ScrollScene({ scrollProgress, handPosition, onCardClick }: Props
       </group>
 
       <FloatingImages scrollProgress={scrollProgress} />
+
+      <Suspense fallback={null}>
+        <Spaceship scrollProgress={scrollProgress} />
+      </Suspense>
 
       <ParticleField count={isMobile ? 6000 : isTablet ? 12000 : 22000} scrollProgress={scrollProgress} />
     </>
