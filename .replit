@@ -30,3 +30,8 @@ externalPort = 80
 [[ports]]
 localPort = 22583
 externalPort = 3000
+
+[userenv]
+
+[userenv.shared]
+V1V_ADMIN_PASSWORD = "v1vadmin123"

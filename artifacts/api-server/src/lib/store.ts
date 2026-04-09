@@ -212,6 +212,10 @@ export function updateSettings(settings: SiteSettings): SiteSettings {
 }
 
 export function verifyPassword(password: string): boolean {
+  const envPassword = process.env.V1V_ADMIN_PASSWORD;
+  if (envPassword) {
+    return password === envPassword;
+  }
   return readData().adminPassword === password;
 }
 

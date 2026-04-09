@@ -3,6 +3,7 @@ import { CustomCursor } from "@/components/CustomCursor";
 import { Scene } from "@/components/canvas/Scene";
 import { UIOverlay } from "@/components/UIOverlay";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { useThemeColors } from "@/hooks/useThemeColors";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -15,6 +16,8 @@ export default function Home() {
   const mainRef = useRef<HTMLElement>(null);
   const lenisRef = useRef<Lenis | null>(null);
   const triggersRef = useRef<ScrollTrigger[]>([]);
+
+  useThemeColors();
 
   useEffect(() => {
     const lenis = new Lenis({
