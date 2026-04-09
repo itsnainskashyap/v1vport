@@ -1,0 +1,20 @@
+Create a stunning scroll-triggered vertical DNA/helix-style 3D projects showcase section for v1v.in website, right after the hero section.
+
+Effect Details (must be visually amazing, better than Active Theory):
+- When user scrolls down from hero, a full-width vertical DNA/helix structure appears (like a twisting double helix made of glowing particles or thin neon tubes in electric cyan/blue/purple colors).
+- Along this rotating vertical helix, multiple 3D project cards are attached at different heights like "beads" on the DNA strand.
+- As the user scrolls, the entire helix continuously rotates slowly on its vertical Y-axis (smooth infinite gentle spin).
+- Scroll progress drives the helix rotation speed + vertical camera movement (like traveling down the DNA strand).
+- Each project card is a 3D plane/mesh with project image as texture, title, short description, and tags glowing on hover.
+- Cards have individual animations: they gently float/tilt/rotate on their own axis while attached to the helix, with bloom glow and subtle distortion shader when in focus.
+- On scroll, cards come into view one by one with parallax depth — foreground cards bigger and sharper, background ones slightly faded with depth-of-field effect.
+- Use @react-three/fiber + drei + GSAP ScrollTrigger + Lenis for buttery smooth scroll control.
+- Add post-processing: bloom, chromatic aberration, and noise for cinematic futuristic feel.
+- When a card reaches the center of the screen (pin position), it slightly enlarges, glow intensifies, and clicking it opens a modal with full case study (or links to project page).
+- Infinite feel on long scroll: helix repeats seamlessly or new cards keep appearing from bottom.
+- Mobile optimized: reduce particle count and rotation speed, keep smooth 60fps.
+- Dark background with subtle particle field behind the helix.
+
+Use Three.js custom shaders for glowing neon tubes of the helix and liquid-like card borders. Make it highly interactive — mouse movement slightly tilts the whole helix.
+
+Provide complete reusable React component code with proper comments, including how to integrate with Lenis/GSAP ScrollTrigger and sample project data array.

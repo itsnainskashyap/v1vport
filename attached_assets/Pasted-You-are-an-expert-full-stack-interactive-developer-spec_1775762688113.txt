@@ -1,0 +1,49 @@
+You are an expert full-stack interactive developer specializing in WebGL, Three.js, and cinematic web experiences. Build a complete, production-ready website for https://v1v.in named "V1V" – a creative digital studio like Active Theory.
+
+EXACT VISUAL STYLE TO REPLICATE & IMPROVE (even better than activetheory.net):
+- Ultra-dark futuristic theme: deep black + electric blue/cyan/purple gradients, neon glows, subtle grain/noise texture.
+- Full-screen immersive 3D WebGL canvas as the hero and background (using Three.js + @react-three/fiber + drei).
+- Hero scene: Interactive 3D particle globe / data city with glowing points (like LAX→NYC→AMS but branded "V1V"). Camera orbits slowly on mouse move, particles react to cursor, bloom + glitch post-processing (using @react-three/postprocessing). Big glowing "V1V" logo in center with kinetic typography that distorts on hover/scroll.
+- Smooth Lenis scroll with scroll-triggered scene changes (GSAP + ScrollTrigger).
+- Minimal navigation: Top-right "WORK" button that opens full-screen overlay menu with liquid/glass morphing effects. Close button with X that has hover distortion.
+- All sections have WebGL background that subtly reacts to scroll (parallax layers, shader transitions).
+- Typography: Ultra-bold futuristic sans (like Inter + custom weight), glowing text with text-shadow and shader effects.
+- Micro-interactions everywhere: hover on project cards causes 3D tilt + glow bloom, cursor becomes custom neon dot that leaves trail.
+
+SITE STRUCTURE:
+1. Hero (full viewport 3D immersive intro with "V1V" + tagline "Creative Digital Experiences" + "VIEW WORK" glowing button)
+2. About section (minimal text + 3D abstract portrait/model that rotates on scroll)
+3. Work / Projects (infinite horizontal scroll or 3D card grid with hover revealing case study preview in 3D)
+4. Lab / Experiments (smaller interactive 3D demos)
+5. Contact (simple form with 3D floating elements)
+
+Make it 100% responsive (mobile also has optimized 3D performance).
+
+TECH STACK (must use):
+- Next.js 14+ App Router
+- React + TypeScript
+- Tailwind CSS
+- Three.js + @react-three/fiber + @react-three/drei
+- GSAP + ScrollTrigger + Lenis for buttery smooth scroll
+- Post-processing (bloom, vignette, glitch, noise)
+- Custom shaders for liquid/glass/distortion effects
+- Framer Motion for extra UI animations
+- Deploy-ready on Replit/Vercel
+
+ADMIN PANEL at /admin:
+- Simple password protected page (default password: "v1vadmin123" – make it easy to change).
+- Dashboard UI in same futuristic dark theme.
+- Sections to manage:
+  - About text + 3D model URL
+  - Projects: Add/Edit/Delete (title, short desc, long desc, images/links, tags, year)
+  - Hero tagline & 3D settings
+  - Contact info
+- All data saved in a JSON file (or Replit DB / local JSON) so changes persist.
+- Live preview button that shows how changes look on main site.
+- Responsive admin UI with same glow/neon effects.
+
+Performance: 60fps on desktop + mobile. Add loading screen with 3D progress animation. No external heavy libraries unless necessary. Include proper comments and folder structure.
+
+Output the complete project structure with all files and code ready to copy-paste into Replit. Start with package.json dependencies and then all pages/components.
+
+Make it BETTER than activetheory.net – more fluid shaders, better mouse reactivity, extra cinematic effects, and super clean code.
