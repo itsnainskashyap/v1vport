@@ -11,8 +11,10 @@ export function Spaceship({ scrollProgress }: Props) {
   const groupRef = useRef<THREE.Group>(null);
   const trailRef = useRef<THREE.Points>(null);
   const smoothScroll = useRef(0);
+  const prevScroll = useRef(0);
   const prevPos = useRef(new THREE.Vector3(0, 2, 4));
   const velocity = useRef(new THREE.Vector3());
+  const flyAwayPhase = useRef(0);
   const { camera } = useThree();
 
   const basePath = import.meta.env.BASE_URL;
@@ -56,49 +58,29 @@ export function Spaceship({ scrollProgress }: Props) {
 
         if (name.includes("front")) {
           mat = new THREE.MeshStandardMaterial({
-            map: frontBase,
-            normalMap: frontNormal,
-            metalnessMap: frontMetallic,
-            roughnessMap: frontRoughness,
-            emissiveMap: frontEmissive,
-            emissive: new THREE.Color("#33ccff"),
-            emissiveIntensity: 2,
-            metalness: 0.9,
-            roughness: 0.2,
+            map: frontBase, normalMap: frontNormal, metalnessMap: frontMetallic,
+            roughnessMap: frontRoughness, emissiveMap: frontEmissive,
+            emissive: new THREE.Color("#33ccff"), emissiveIntensity: 2,
+            metalness: 0.9, roughness: 0.2,
           });
         } else if (name.includes("rear")) {
           mat = new THREE.MeshStandardMaterial({
-            map: rearBase,
-            normalMap: rearNormal,
-            metalnessMap: rearMetallic,
-            roughnessMap: rearRoughness,
-            emissiveMap: rearEmissive,
-            emissive: new THREE.Color("#ff5533"),
-            emissiveIntensity: 3,
-            metalness: 0.9,
-            roughness: 0.2,
+            map: rearBase, normalMap: rearNormal, metalnessMap: rearMetallic,
+            roughnessMap: rearRoughness, emissiveMap: rearEmissive,
+            emissive: new THREE.Color("#ff5533"), emissiveIntensity: 3,
+            metalness: 0.9, roughness: 0.2,
           });
         } else if (name.includes("window")) {
           mat = new THREE.MeshStandardMaterial({
-            map: windowBase,
-            normalMap: windowNormal,
-            metalnessMap: windowMetallic,
-            roughnessMap: windowRoughness,
-            emissive: new THREE.Color("#55aaff"),
-            emissiveIntensity: 1.5,
-            metalness: 1.0,
-            roughness: 0.1,
-            transparent: true,
-            opacity: 0.9,
+            map: windowBase, normalMap: windowNormal, metalnessMap: windowMetallic,
+            roughnessMap: windowRoughness, emissive: new THREE.Color("#55aaff"),
+            emissiveIntensity: 1.5, metalness: 1.0, roughness: 0.1,
+            transparent: true, opacity: 0.9,
           });
         } else {
           mat = new THREE.MeshStandardMaterial({
-            map: bodyBase,
-            normalMap: bodyNormal,
-            metalnessMap: bodyMetallic,
-            roughnessMap: bodyRoughness,
-            metalness: 0.85,
-            roughness: 0.15,
+            map: bodyBase, normalMap: bodyNormal, metalnessMap: bodyMetallic,
+            roughnessMap: bodyRoughness, metalness: 0.85, roughness: 0.15,
             envMapIntensity: 1.5,
           });
         }
@@ -109,21 +91,16 @@ export function Spaceship({ scrollProgress }: Props) {
   }, [fbx, bodyBase, bodyNormal, bodyMetallic, bodyRoughness, frontBase, frontNormal, frontEmissive, frontMetallic, frontRoughness, rearBase, rearNormal, rearEmissive, rearMetallic, rearRoughness, windowBase, windowNormal, windowMetallic, windowRoughness]);
 
   const trailData = useMemo(() => {
-    const count = 300;
+    const count = 400;
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
-    const sizes = new Float32Array(count);
     for (let i = 0; i < count; i++) {
-      positions[i * 3] = 0;
-      positions[i * 3 + 1] = 0;
-      positions[i * 3 + 2] = 0;
       const t = i / count;
       colors[i * 3] = 0.2 + t * 0.8;
-      colors[i * 3 + 1] = 0.5 + t * 0.5;
+      colors[i * 3 + 1] = 0.4 + t * 0.6;
       colors[i * 3 + 2] = 1.0;
-      sizes[i] = (1 - t) * 0.15;
     }
-    return { positions, colors, sizes, count };
+    return { positions, colors, count };
   }, []);
 
   const trailPositions = useRef<THREE.Vector3[]>([]);
@@ -148,55 +125,99 @@ export function Spaceship({ scrollProgress }: Props) {
     if (!groupRef.current) return;
     const t = state.clock.elapsedTime;
 
-    smoothScroll.current += (scrollProgress - smoothScroll.current) * 0.03;
+    smoothScroll.current += (scrollProgress - smoothScroll.current) * 0.04;
     const p = smoothScroll.current;
 
-    const camZ = camera.position.z;
-    const camX = camera.position.x;
-    const camY = camera.position.y;
+    const scrollSpeed = p - prevScroll.current;
+    prevScroll.current = p;
 
-    const shipOffsetX = Math.sin(t * 0.4 + p * 8) * 3 + Math.sin(t * 0.7) * 1.5;
-    const shipOffsetY = Math.cos(t * 0.3 + p * 6) * 2 + Math.sin(t * 0.5) * 1;
-    const shipZ = camZ - 8 - Math.sin(t * 0.2) * 3;
+    const startZ = 8;
+    const endZ = -80;
+    const pathZ = startZ + (endZ - startZ) * p;
+    const pathX = Math.sin(p * Math.PI * 4) * 1.5;
+    const pathY = Math.sin(p * Math.PI * 2.5) * 0.8;
 
-    const targetX = camX + shipOffsetX;
-    const targetY = camY + shipOffsetY + 2;
-    const targetZ = shipZ;
+    const isFlyingAway = p > 0.92;
 
-    const newPos = new THREE.Vector3(targetX, targetY, targetZ);
-    const currentPos = groupRef.current.position;
-    currentPos.lerp(newPos, 0.025);
+    if (isFlyingAway) {
+      flyAwayPhase.current += 0.015;
+      const flyT = Math.min(flyAwayPhase.current, 1);
+      const eased = flyT * flyT * flyT;
 
-    velocity.current.subVectors(currentPos, prevPos.current);
-    prevPos.current.copy(currentPos);
+      const flyX = pathX + eased * 30;
+      const flyY = pathY + eased * 20;
+      const flyZ = pathZ - eased * 60;
 
-    const moveDir = velocity.current.clone().normalize();
-    if (velocity.current.length() > 0.001) {
+      const targetPos = new THREE.Vector3(flyX, flyY, flyZ);
+      groupRef.current.position.lerp(targetPos, 0.05);
+
+      const flyScale = 0.0015 * (1 + eased * 0.5);
+      groupRef.current.scale.setScalar(flyScale);
+
+      const flyRoll = eased * Math.PI * 1.5;
+      const flyPitch = -eased * 0.5;
       const targetQuat = new THREE.Quaternion();
-      const lookDir = moveDir.clone();
-      const up = new THREE.Vector3(0, 1, 0);
+      const euler = new THREE.Euler(flyPitch, 0, flyRoll, "XYZ");
+      targetQuat.setFromEuler(euler);
 
-      const bankAngle = -velocity.current.x * 8;
-      const pitchAngle = velocity.current.y * 5;
-
+      const forwardQuat = new THREE.Quaternion();
+      const lookDir = new THREE.Vector3(eased * 2, eased, -1).normalize();
       const mat4 = new THREE.Matrix4();
-      mat4.lookAt(new THREE.Vector3(0, 0, 0), lookDir, up);
-      targetQuat.setFromRotationMatrix(mat4);
+      mat4.lookAt(new THREE.Vector3(0, 0, 0), lookDir, new THREE.Vector3(0, 1, 0));
+      forwardQuat.setFromRotationMatrix(mat4);
+      forwardQuat.multiply(targetQuat);
 
-      const bankQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), bankAngle);
-      const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitchAngle);
-      targetQuat.multiply(bankQuat).multiply(pitchQuat);
+      groupRef.current.quaternion.slerp(forwardQuat, 0.04);
+    } else {
+      flyAwayPhase.current = 0;
 
-      groupRef.current.quaternion.slerp(targetQuat, 0.03);
+      const shipAheadZ = pathZ - 6;
+      const shipX = pathX + Math.sin(t * 0.3) * 0.4;
+      const shipY = pathY + 1.5 + Math.sin(t * 0.25) * 0.3;
+
+      const scrollBoost = Math.abs(scrollSpeed) * 200;
+      const wobbleX = Math.sin(t * 0.8) * (0.3 + scrollBoost * 0.5);
+      const wobbleY = Math.cos(t * 0.6) * (0.2 + scrollBoost * 0.3);
+
+      const isTextVisible = isNearTextSection(p);
+      const sideOffset = isTextVisible ? 4 : 0;
+      const sideDir = Math.sin(p * 10) > 0 ? 1 : -1;
+
+      const targetX = shipX + wobbleX + sideOffset * sideDir;
+      const targetY = shipY + wobbleY;
+      const targetZ = shipAheadZ;
+
+      const targetPos = new THREE.Vector3(targetX, targetY, targetZ);
+      groupRef.current.position.lerp(targetPos, 0.035);
+
+      velocity.current.subVectors(groupRef.current.position, prevPos.current);
+      prevPos.current.copy(groupRef.current.position);
+
+      if (velocity.current.length() > 0.001) {
+        const moveDir = velocity.current.clone().normalize();
+        const targetQuat = new THREE.Quaternion();
+        const up = new THREE.Vector3(0, 1, 0);
+        const mat4 = new THREE.Matrix4();
+        mat4.lookAt(new THREE.Vector3(0, 0, 0), moveDir, up);
+        targetQuat.setFromRotationMatrix(mat4);
+
+        const bankAngle = THREE.MathUtils.clamp(-velocity.current.x * 12, -Math.PI * 0.4, Math.PI * 0.4);
+        const pitchAngle = THREE.MathUtils.clamp(velocity.current.y * 6, -Math.PI * 0.25, Math.PI * 0.25);
+
+        const bankQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), bankAngle);
+        const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitchAngle);
+        targetQuat.multiply(bankQuat).multiply(pitchQuat);
+
+        groupRef.current.quaternion.slerp(targetQuat, 0.04);
+      }
+
+      const targetScale = isTextVisible ? 0.0006 : 0.0015;
+      const currentScale = groupRef.current.scale.x;
+      const newScale = currentScale + (targetScale - currentScale) * 0.03;
+      groupRef.current.scale.setScalar(newScale);
     }
 
-    const isTextVisible = isNearTextSection(p);
-    const targetScale = isTextVisible ? 0.0005 : 0.0015;
-    const currentScale = groupRef.current.scale.x;
-    const newScale = currentScale + (targetScale - currentScale) * 0.03;
-    groupRef.current.scale.setScalar(newScale);
-
-    trailPositions.current.unshift(currentPos.clone());
+    trailPositions.current.unshift(groupRef.current.position.clone());
     if (trailPositions.current.length > trailData.count) {
       trailPositions.current.length = trailData.count;
     }
@@ -205,18 +226,22 @@ export function Spaceship({ scrollProgress }: Props) {
       const posAttr = trailRef.current.geometry.attributes.position;
       const arr = posAttr.array as Float32Array;
       for (let i = 0; i < trailData.count; i++) {
-        const tp = trailPositions.current[i] || currentPos;
+        const tp = trailPositions.current[i] || groupRef.current.position;
         arr[i * 3] = tp.x;
         arr[i * 3 + 1] = tp.y;
         arr[i * 3 + 2] = tp.z;
       }
       posAttr.needsUpdate = true;
+
+      const trailMat = trailRef.current.material as THREE.PointsMaterial;
+      const trailOpacity = isFlyingAway ? Math.max(0, 0.8 - flyAwayPhase.current * 0.8) : 0.6;
+      trailMat.opacity = trailOpacity;
     }
   });
 
   return (
     <>
-      <group ref={groupRef} scale={[0.0012, 0.0012, 0.0012]}>
+      <group ref={groupRef} scale={[0.0015, 0.0015, 0.0015]}>
         <primitive object={fbx} />
         <pointLight color="#33ccff" intensity={2} distance={8} />
         <pointLight color="#ff5533" intensity={1.5} distance={5} position={[0, 0, 50]} />
@@ -228,7 +253,7 @@ export function Spaceship({ scrollProgress }: Props) {
           <bufferAttribute attach="attributes-color" args={[trailData.colors, 3]} />
         </bufferGeometry>
         <pointsMaterial
-          size={0.1}
+          size={0.08}
           map={glowMap}
           vertexColors
           transparent
