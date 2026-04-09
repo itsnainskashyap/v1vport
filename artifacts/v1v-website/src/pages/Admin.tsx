@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAdminLogin, useAdminVerify, useGetProjects, useGetSettings, useCreateProject, useUpdateProject, useDeleteProject, useUpdateSettings, getGetProjectsQueryKey, getGetSettingsQueryKey } from "@workspace/api-client-react";
+import type { Project, SiteSettings } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function Admin() {
@@ -113,12 +114,22 @@ export default function Admin() {
 
   const handleUpdateSettings = (e: React.FormEvent) => {
     e.preventDefault();
-    updateSettingsMutation.mutate({ data: settingsForm as any }, {
+    const settingsPayload: SiteSettings = {
+      heroTagline: settingsForm.heroTagline,
+      heroSubtitle: settingsForm.heroSubtitle,
+      aboutTitle: settingsForm.aboutTitle,
+      aboutText: settingsForm.aboutText,
+      aboutFoundedYear: settingsForm.aboutFoundedYear || undefined,
+      contactEmail: settingsForm.contactEmail,
+      contactPhone: settingsForm.contactPhone || undefined,
+      contactAddress: settingsForm.contactAddress || undefined,
+    };
+    updateSettingsMutation.mutate({ data: settingsPayload }, {
       onSuccess: () => { queryClient.invalidateQueries({ queryKey: getGetSettingsQueryKey() }); },
     });
   };
 
-  const startEdit = (project: any) => {
+  const startEdit = (project: Project) => {
     setEditingProject(project.id);
     setProjectForm({
       title: project.title,

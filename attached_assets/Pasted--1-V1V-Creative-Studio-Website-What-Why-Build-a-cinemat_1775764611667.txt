@@ -1,0 +1,67 @@
+#1 - V1V Creative Studio Website
+
+What & Why
+
+Build a cinematic, full-screen immersive website for V1V — a creative digital studio at v1v.in — matching and exceeding the visual quality of activetheory.net. The site uses real fully-dimensional 3D models (procedurally generated and/or imported GLTF/GLB assets), continuously animated in the Three.js scene, with WebGL post-processing, GSAP scroll-driven transitions, hand gesture support, and a password-protected admin panel. Nothing should look AI-generated, template-based, or generic — every element must feel handcrafted by a world-class creative studio.
+
+Visual Reference (activetheory.net — must match or surpass)
+
+From the provided reference screenshots, these are the exact 3D elements and visual moments to replicate for V1V:
+
+Hero: Deep dark background (near-black teal/navy), a glowing wire/ribbon sculpture (figure-8 / lemniscate curve rendered as a thin iridescent tube), a central 3D logo disc (glass torus ring with the V1V mark inscribed inside), and thousands of floating organic particles (green/cyan/gold shimmering dots scattered in 3D space with depth). The sculpture slowly rotates; particles drift.
+About transition: The 3D logo/ring expands and transforms — iridescent glass torus with rainbow light refraction, floating in front of "CREATIVE DIGITAL EXPERIENCES" ultra-bold typography. The ring is a full 3D toroidal mesh with a physically-based glass/iridescent material (transmission, roughness, metalness, iridescence).
+Work / Projects section: Project cards displayed as 3D floating planes (like physical screens in 3D space), each card has crystalline/organic colorful 3D formations growing from it (procedurally generated crystal clusters or imported rock/gem GLTF). The cards are arranged scrolling in 3D with parallax. Along the spine between cards: an organic backbone-like 3D mesh (irregular vertebrae-like shapes). Left panel: service category list (text menu). Cards tilt on hover, click opens case study.
+Lab section: Full-width hexagonal tunnel/vortex (a cylinder lined with hexagonal cells — like a honeycomb tunnel viewed from inside). The tunnel recedes into the center with rotating perspective. A cross/target symbol overlaid. "// THE LAB ->" typography. The hexagon cells have subtle color shifts (iridescent).
+Transition between sections: Industrial sci-fi cylindrical cage structure (metal rings + vertical rods forming a column), with a glowing particle cluster suspended inside it, camera looking slightly upward. Then the camera pulls out to reveal it transitioning into the next section.
+3D Model Strategy
+
+V1V logo disc + torus ring: Procedurally generated in Three.js — TorusGeometry with a physically-based glass material (MeshPhysicalMaterial: transmission=1, roughness=0.05, metalness=0.1, iridescence=1) — mirrors the AT ring exactly.
+Wire/ribbon sculpture: Procedurally generated using TubeGeometry along a parametric lemniscate (figure-8) curve — thin tube with metallic/emissive material in cyan/blue/gold gradient.
+Particle fields: Three.js Points with custom vertex shader — 8000+ particles with random sizes, soft additive blending, gentle float animation in useFrame loop.
+Crystal formations on cards: Either procedurally generated using IcosahedronGeometry with vertex displacement shaders, or imported as free CC0 crystal/gem GLTF from Poly Pizza / KhronosGroup sample assets. These should be fully 3D and continuously rotating/floating.
+Organic backbone/spine between cards: CatmullRomCurve3-based tube mesh with irregular radii — procedurally generated to look biological/organic.
+Hexagonal tunnel: CylinderGeometry lined with instanced hexagonal prism meshes — procedurally built. Slow continuous rotation on Z-axis.
+Industrial cage structure: Procedurally built from RingGeometry + CylinderGeometry pieces arranged as a cage — with glowing PointLight inside.
+All models animate continuously in the useFrame render loop: slow rotation, gentle float (Math.sin wave), breathing scale pulses, and particle drift.
+Done looks like
+
+A fully functional React + Vite site served at the root / path with:
+Loading screen: 3D progress animation (glowing ring fills as assets load) — no plain bar
+Hero section: Deep dark scene, wire/ribbon lemniscate sculpture, glass torus V1V logo disc, 8000+ particle field, mouse-parallax camera drift, bloom + glitch post-processing, "VIEW WORK" glow button, Lenis smooth scroll
+About / transition section: Scroll-triggered reveal of iridescent glass torus (full MeshPhysicalMaterial with transmission + iridescence) in front of large bold "CREATIVE DIGITAL EXPERIENCES" typography + studio description text — exact match to AT reference
+Work / Projects section: 3D floating project cards (screen planes) with crystal/gem formations growing off them, organic backbone spine mesh running between them, left-side category/service text menu, horizontal or depth-stacked scroll with parallax, hover tilt + glow, click opens full case study modal
+Lab section: Hexagonal honeycomb tunnel vortex (full 3D instanced hex prisms forming a cylinder), cross/target overlay, "// THE LAB ->" text, iridescent cell color shifts
+Transition structure: Industrial cage (ring + rod cylinder) with suspended inner particle cluster — used as a 3D scene separator
+Contact section: Floating 3D ring/particle elements, minimal form
+Navigation: Minimal pill-button "WORK — CONTACT" top-right (exact AT style), opens full-screen dark overlay with glass morphing
+Custom cursor: Neon dot + trail, grows on hover
+Hand gesture support: Pinch-to-scroll driving scene travel speed, touch swipe for section navigation, tap for card interaction — using native Pointer Events API (no heavy libraries)
+Smooth scroll: Lenis + GSAP ScrollTrigger for all scroll-driven 3D transitions
+60fps desktop, graceful degradation on mobile (reduced particle count, simpler shaders)
+Zero generic/template feel — every element bespoke
+A password-protected admin panel at /admin (default password: v1vadmin123) in the same dark neon theme:
+Manage projects (title, short desc, long desc, images/links, tags, year)
+Edit hero tagline and 3D scene color settings
+Edit about text and contact info
+Live preview button
+Backend API persisting all content (projects, settings) to a JSON file on the server
+Out of scope
+
+Real domain DNS for v1v.in
+Multi-user admin / user accounts
+E-commerce
+CMS integrations
+Tasks
+
+API spec + backend routes — Extend the OpenAPI spec with endpoints for: projects CRUD, site settings (hero tagline, about text, contact info, theme colors), and admin auth (password login). Implement all route handlers in the Express API server, persisting data to a JSON file. Run codegen to generate client hooks and Zod schemas.
+V1V frontend — core 3D website — Create a react-vite artifact at root /. Install: Three.js, @react-three/fiber, @react-three/drei, @react-three/postprocessing, GSAP, lenis, framer-motion, Tailwind CSS. Build the full site using the exact visual language from the AT reference screenshots:
+All 3D models procedurally generated as described in the 3D Model Strategy above — glass torus ring, wire/ribbon lemniscate sculpture, particle fields, crystal formations, organic spine mesh, hex tunnel, industrial cage
+All models animate continuously in the render loop (rotation, float, pulse)
+Hero scene, About transition, Work/Projects (with 3D cards + crystal formations + spine mesh), Lab (hex tunnel), transition cage, Contact
+Navigation pill-button top-right, full-screen overlay
+Custom neon cursor + trail
+Loading screen with 3D ring progress
+Hand gesture layer: pinch scroll, swipe, tap — Pointer Events API
+All dynamic content wired to API client hooks
+Physically-based materials: glass (transmission), iridescence, metalness — matching the AT reference quality exactly
+Admin panel — Add /admin route to the same artifact. Password-protected dashboard (password: v1vadmin123) in dark neon theme. Manage projects, hero settings, about text, contact info. All mutations via API hooks.

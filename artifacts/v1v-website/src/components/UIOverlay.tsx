@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGetProjects, useGetSettings } from "@workspace/api-client-react";
+import type { Project } from "@workspace/api-client-react";
 import { Navigation } from "./Navigation";
 import { ProjectModal } from "./ProjectModal";
 
@@ -28,7 +29,7 @@ export function UIOverlay() {
     <>
       <Navigation />
 
-      <section className="h-screen flex flex-col items-center justify-center pointer-events-auto" data-testid="hero-section">
+      <section id="hero-section" className="h-screen flex flex-col items-center justify-center pointer-events-auto" data-testid="hero-section">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -56,7 +57,7 @@ export function UIOverlay() {
         </motion.div>
       </section>
 
-      <section className="min-h-screen flex items-center px-6 md:px-16 lg:px-24 pointer-events-auto" data-testid="about-section">
+      <section id="about-section" className="min-h-screen flex items-center px-6 md:px-16 lg:px-24 pointer-events-auto" data-testid="about-section">
         <motion.div
           initial={{ opacity: 0, x: -60 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -103,7 +104,7 @@ export function UIOverlay() {
           </div>
 
           <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8">
-            {(projects || []).map((project, i) => (
+            {(projects || []).map((project: Project, i: number) => (
               <motion.div
                 key={project.id}
                 initial={{ opacity: 0, y: 50 }}
@@ -121,7 +122,7 @@ export function UIOverlay() {
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/0 via-primary/50 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity" />
                   <div className="relative z-10">
                     <div className="flex gap-2 mb-3 flex-wrap">
-                      {project.tags.slice(0, 3).map((tag) => (
+                      {project.tags.slice(0, 3).map((tag: string) => (
                         <span key={tag} className="text-[10px] tracking-[0.15em] uppercase text-primary/60 font-mono">{tag}</span>
                       ))}
                     </div>
@@ -136,7 +137,7 @@ export function UIOverlay() {
         </div>
       </section>
 
-      <section className="min-h-screen flex items-center justify-center px-6 md:px-16 lg:px-24 pointer-events-auto" data-testid="lab-section">
+      <section id="lab-section" className="min-h-screen flex items-center justify-center px-6 md:px-16 lg:px-24 pointer-events-auto" data-testid="lab-section">
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -154,7 +155,7 @@ export function UIOverlay() {
         </motion.div>
       </section>
 
-      <section className="min-h-screen flex items-center px-6 md:px-16 lg:px-24 pointer-events-auto" data-testid="contact-section">
+      <section id="contact-section" className="min-h-screen flex items-center px-6 md:px-16 lg:px-24 pointer-events-auto" data-testid="contact-section">
         <div className="max-w-2xl w-full mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
