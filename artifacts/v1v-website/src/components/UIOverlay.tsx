@@ -29,15 +29,15 @@ export function UIOverlay({ scrollProgress, onNavigate }: Props) {
   const contactEmail = settings?.contactEmail || "hello@v1v.in";
 
   const scrollIndicatorOpacity = Math.max(0, 1 - scrollProgress * 8);
-  const dnaLabelOpacity = clampOpacity(scrollProgress, 0.22, 0.28, 0.50);
-  const workLabelOpacity = clampOpacity(scrollProgress, 0.35, 0.40, 0.75);
+  const dnaLabelOpacity = clampOpacity(scrollProgress, 0.20, 0.25, 0.65);
+  const workLabelOpacity = clampOpacity(scrollProgress, 0.25, 0.30, 0.70);
   const contactOpacity = clampOpacity(scrollProgress, 0.82, 0.86, 1.0);
 
   const projectList = projects || [];
 
   const getProjectOpacity = (index: number) => {
-    const base = 0.38 + index * 0.08;
-    return clampOpacity(scrollProgress, base, base + 0.03, base + 0.12);
+    const base = 0.28 + index * 0.09;
+    return clampOpacity(scrollProgress, base, base + 0.04, base + 0.15);
   };
 
   return (

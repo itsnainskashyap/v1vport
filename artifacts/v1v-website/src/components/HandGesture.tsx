@@ -96,7 +96,7 @@ export function HandGesture({ onHandMove }: Props) {
         const rawX = -((cx / 160) * 2 - 1);
         const rawY = -((cy / 120) * 2 - 1);
 
-        const smoothing = 0.15;
+        const smoothing = 0.12;
         const prev = prevCenterRef.current;
         const smoothX = prev ? prev.x + (rawX - prev.x) * smoothing : rawX;
         const smoothY = prev ? prev.y + (rawY - prev.y) * smoothing : rawY;
@@ -142,13 +142,13 @@ export function HandGesture({ onHandMove }: Props) {
             transition={{ duration: 0.5 }}
             className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[150] pointer-events-auto"
           >
-            <div className="bg-[rgba(10,15,25,0.9)] backdrop-blur-xl border border-[rgba(85,170,255,0.15)] rounded-2xl px-8 py-5 flex flex-col items-center gap-4 shadow-[0_0_40px_rgba(85,170,255,0.1)]">
+            <div className="bg-[rgba(10,15,25,0.9)] backdrop-blur-xl border border-[rgba(85,170,255,0.15)] rounded-2xl px-6 sm:px-8 py-4 sm:py-5 flex flex-col items-center gap-3 sm:gap-4 shadow-[0_0_40px_rgba(85,170,255,0.1)] max-w-[90vw]">
               <div className="flex items-center gap-3">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(85,170,255,0.7)" strokeWidth="1.5">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(85,170,255,0.7)" strokeWidth="1.5" className="flex-shrink-0">
                   <path d="M18 11V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2v1M14 7V4a2 2 0 0 0-2-2 2 2 0 0 0-2 2v4M10 8V3a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7" />
                   <path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8H12a8 8 0 0 1-8-8V8a2 2 0 1 1 4 0" />
                 </svg>
-                <p className="text-[11px] tracking-[0.15em] text-[rgba(255,255,255,0.6)] font-mono uppercase">
+                <p className="text-[10px] sm:text-[11px] tracking-[0.12em] sm:tracking-[0.15em] text-[rgba(255,255,255,0.6)] font-mono uppercase">
                   {denied ? "Camera access denied" : "For hand gesture, allow camera access"}
                 </p>
               </div>
@@ -157,13 +157,13 @@ export function HandGesture({ onHandMove }: Props) {
                 <div className="flex gap-3">
                   <button
                     onClick={startCamera}
-                    className="px-6 py-2 bg-[rgba(85,170,255,0.15)] border border-[rgba(85,170,255,0.3)] text-[rgba(85,170,255,0.9)] text-[10px] tracking-[0.2em] uppercase font-mono rounded-full hover:bg-[rgba(85,170,255,0.25)] transition-all interactive"
+                    className="px-5 sm:px-6 py-2 bg-[rgba(85,170,255,0.15)] border border-[rgba(85,170,255,0.3)] text-[rgba(85,170,255,0.9)] text-[10px] tracking-[0.2em] uppercase font-mono rounded-full hover:bg-[rgba(85,170,255,0.25)] transition-all interactive"
                   >
                     ALLOW
                   </button>
                   <button
                     onClick={dismiss}
-                    className="px-6 py-2 border border-[rgba(255,255,255,0.08)] text-[rgba(255,255,255,0.3)] text-[10px] tracking-[0.2em] uppercase font-mono rounded-full hover:text-[rgba(255,255,255,0.5)] transition-all interactive"
+                    className="px-5 sm:px-6 py-2 border border-[rgba(255,255,255,0.08)] text-[rgba(255,255,255,0.3)] text-[10px] tracking-[0.2em] uppercase font-mono rounded-full hover:text-[rgba(255,255,255,0.5)] transition-all interactive"
                   >
                     SKIP
                   </button>
@@ -174,25 +174,7 @@ export function HandGesture({ onHandMove }: Props) {
         )}
       </AnimatePresence>
 
-      {cameraActive && (
-        <div className="fixed bottom-4 right-4 z-[120] pointer-events-none">
-          <div className="relative w-[120px] h-[90px] rounded-lg overflow-hidden border border-[rgba(85,170,255,0.2)] shadow-[0_0_20px_rgba(85,170,255,0.1)]">
-            <video
-              ref={videoRef}
-              className="w-full h-full object-cover opacity-60"
-              playsInline
-              muted
-              style={{ transform: "scaleX(-1)" }}
-            />
-            <div className="absolute top-1 left-1 flex items-center gap-1">
-              <div className="w-[5px] h-[5px] rounded-full bg-[rgba(85,255,120,0.8)] animate-pulse" />
-              <span className="text-[7px] font-mono text-[rgba(255,255,255,0.4)] tracking-wider">HAND</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {!cameraActive && <video ref={videoRef} className="hidden" playsInline muted />}
+      <video ref={videoRef} className="hidden" playsInline muted />
       <canvas ref={canvasRef} className="hidden" />
     </>
   );

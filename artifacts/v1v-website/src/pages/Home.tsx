@@ -7,7 +7,7 @@ import { HandGesture } from "@/components/HandGesture";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import Lenis from "lenis";
 
-const SCROLL_HEIGHT = 700;
+const SCROLL_HEIGHT = 800;
 
 const SECTION_TARGETS: Record<string, number> = {
   hero: 0,

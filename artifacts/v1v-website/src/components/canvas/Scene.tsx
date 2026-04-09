@@ -159,12 +159,13 @@ export function Scene({ scrollProgress, handPosition }: SceneProps) {
           onError={() => setHasError(true)}
         >
           <Suspense fallback={null}>
-            <fog attach="fog" args={["#030812", 20, 80]} />
-            <ambientLight intensity={0.1} />
-            <pointLight position={[5, 5, 5]} intensity={0.5} color="#5599cc" />
-            <pointLight position={[-5, -3, 3]} intensity={0.35} color="#9955cc" />
-            <pointLight position={[3, -5, -2]} intensity={0.25} color="#cc5599" />
-            <directionalLight position={[0, 10, 5]} intensity={0.2} color="#88aacc" />
+            <fog attach="fog" args={["#030812", 25, 100]} />
+            <ambientLight intensity={0.15} />
+            <pointLight position={[5, 5, 5]} intensity={0.6} color="#5599cc" />
+            <pointLight position={[-5, -3, 3]} intensity={0.4} color="#9955cc" />
+            <pointLight position={[3, -5, -2]} intensity={0.3} color="#cc5599" />
+            <pointLight position={[-3, 4, -20]} intensity={0.3} color="#55cc88" />
+            <directionalLight position={[0, 10, 5]} intensity={0.25} color="#88aacc" />
             <ScrollScene scrollProgress={scrollProgress} handPosition={handPosition} />
             <EffectComposer multisampling={0}>
               <Bloom
