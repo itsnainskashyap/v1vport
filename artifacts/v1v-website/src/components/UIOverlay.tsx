@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useGetSettings, useGetProjects } from "@workspace/api-client-react";
 import { Navigation } from "./Navigation";
 import { ProjectModal } from "./ProjectModal";
@@ -43,13 +43,13 @@ export function UIOverlay({ scrollProgress, onNavigate, selectedCardIndex, onCle
   }, [selectedCardIndex, projectList, onClearCardSelection]);
 
   const scrollIndicatorOpacity = Math.max(0, 1 - scrollProgress * 8);
-  const dnaLabelOpacity = clampOpacity(scrollProgress, 0.20, 0.25, 0.65);
-  const workLabelOpacity = clampOpacity(scrollProgress, 0.25, 0.30, 0.70);
-  const contactOpacity = clampOpacity(scrollProgress, 0.82, 0.86, 1.0);
+  const dnaLabelOpacity = clampOpacity(scrollProgress, 0.30, 0.34, 0.55);
+  const workLabelOpacity = clampOpacity(scrollProgress, 0.32, 0.36, 0.55);
+  const contactOpacity = clampOpacity(scrollProgress, 0.85, 0.88, 1.0);
 
   const getProjectOpacity = (index: number) => {
-    const base = 0.28 + index * 0.09;
-    return clampOpacity(scrollProgress, base, base + 0.04, base + 0.15);
+    const base = 0.34 + index * 0.04;
+    return clampOpacity(scrollProgress, base, base + 0.03, base + 0.08);
   };
 
   return (
@@ -61,7 +61,7 @@ export function UIOverlay({ scrollProgress, onNavigate, selectedCardIndex, onCle
         style={{ opacity: scrollIndicatorOpacity, visibility: scrollIndicatorOpacity < 0.01 ? "hidden" : "visible" }}
       >
         <p className="text-[8px] tracking-[0.3em] uppercase text-[rgba(255,255,255,0.15)] font-mono mb-3">
-          SCROLL
+          SCROLL TO EXPLORE
         </p>
         <div className="w-[1px] h-10 bg-gradient-to-b from-[rgba(85,170,255,0.2)] to-transparent animate-pulse" />
       </div>
@@ -89,14 +89,24 @@ export function UIOverlay({ scrollProgress, onNavigate, selectedCardIndex, onCle
             {projectList.slice(0, 5).map((project, index) => {
               const projectOpacity = getProjectOpacity(index);
               return (
-                <li key={project.id} style={{ opacity: projectOpacity }}>
+                <motion.li
+                  key={project.id}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: projectOpacity, x: projectOpacity > 0.1 ? 0 : 20 }}
+                  transition={{ duration: 0.4 }}
+                >
                   <button
                     onClick={() => setSelectedProjectId(project.id)}
-                    className="text-[11px] text-[rgba(255,255,255,0.4)] hover:text-[rgba(85,170,255,0.9)] transition-all font-mono tracking-wide interactive text-right block"
+                    className="group text-right block w-full"
                   >
-                    {project.title}
+                    <span className="text-[11px] text-[rgba(255,255,255,0.5)] group-hover:text-[rgba(85,170,255,0.9)] transition-all font-mono tracking-wide interactive block">
+                      {project.title}
+                    </span>
+                    <span className="text-[8px] text-[rgba(255,255,255,0.15)] group-hover:text-[rgba(255,255,255,0.3)] font-mono tracking-wider transition-all block mt-0.5">
+                      {project.category} — {project.year}
+                    </span>
                   </button>
-                </li>
+                </motion.li>
               );
             })}
           </ul>
@@ -156,9 +166,9 @@ export function UIOverlay({ scrollProgress, onNavigate, selectedCardIndex, onCle
       </div>
 
       <div className="fixed right-3 top-1/2 -translate-y-1/2 z-10 pointer-events-none">
-        <div className="w-[1px] h-12 bg-[rgba(255,255,255,0.03)] relative">
+        <div className="w-[1px] h-16 bg-[rgba(255,255,255,0.03)] relative rounded-full overflow-hidden">
           <div
-            className="absolute top-0 left-0 w-full bg-[rgba(85,170,255,0.3)] transition-all duration-300"
+            className="absolute top-0 left-0 w-full bg-gradient-to-b from-[rgba(85,170,255,0.4)] to-[rgba(170,85,255,0.3)] transition-all duration-300"
             style={{ height: `${scrollProgress * 100}%` }}
           />
         </div>

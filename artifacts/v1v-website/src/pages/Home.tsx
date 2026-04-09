@@ -2,7 +2,8 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { CustomCursor } from "@/components/CustomCursor";
 import { Scene } from "@/components/canvas/Scene";
 import { UIOverlay } from "@/components/UIOverlay";
-import { LoadingScreen } from "@/components/LoadingScreen";
+import { CinematicIntro } from "@/components/CinematicIntro";
+import { SoundManager } from "@/components/SoundManager";
 import { HandGesture } from "@/components/HandGesture";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import Lenis from "lenis";
@@ -11,7 +12,7 @@ const SCROLL_HEIGHT = 800;
 
 const SECTION_TARGETS: Record<string, number> = {
   hero: 0,
-  work: 0.4,
+  work: 0.35,
   contact: 0.88,
 };
 
@@ -22,7 +23,8 @@ interface HandPosition {
 
 export default function Home() {
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [loaded, setLoaded] = useState(false);
+  const [introComplete, setIntroComplete] = useState(false);
+  const [sceneReady, setSceneReady] = useState(false);
   const [handPosition, setHandPosition] = useState<HandPosition | null>(null);
   const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
   const lenisRef = useRef<Lenis | null>(null);
@@ -68,7 +70,10 @@ export default function Home() {
     lenis.scrollTo(target * maxScroll, { duration: 2.5 });
   }, []);
 
-  const handleLoadComplete = useCallback(() => setLoaded(true), []);
+  const handleIntroComplete = useCallback(() => {
+    setIntroComplete(true);
+    setTimeout(() => setSceneReady(true), 500);
+  }, []);
 
   const handleHandMove = useCallback((position: HandPosition | null) => {
     setHandPosition(position);
@@ -84,10 +89,14 @@ export default function Home() {
 
   return (
     <>
-      {!loaded && <LoadingScreen onComplete={handleLoadComplete} />}
+      {!introComplete && <CinematicIntro onComplete={handleIntroComplete} />}
 
       <div className="fixed inset-0 z-0">
-        <Scene scrollProgress={scrollProgress} handPosition={handPosition} onCardClick={handleCardClick} />
+        {introComplete ? (
+          <Scene scrollProgress={scrollProgress} handPosition={handPosition} onCardClick={handleCardClick} />
+        ) : (
+          <div className="w-full h-full bg-[#030812]" />
+        )}
       </div>
 
       <UIOverlay
@@ -99,7 +108,9 @@ export default function Home() {
 
       <div style={{ height: `${SCROLL_HEIGHT}vh` }} className="pointer-events-none" aria-hidden="true" />
 
-      {loaded && <HandGesture onHandMove={handleHandMove} />}
+      {sceneReady && <HandGesture onHandMove={handleHandMove} />}
+
+      <SoundManager scrollProgress={scrollProgress} active={introComplete} />
 
       <CustomCursor />
     </>
