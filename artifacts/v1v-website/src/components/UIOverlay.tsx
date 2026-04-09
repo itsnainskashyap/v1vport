@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGetProjects, useGetSettings } from "@workspace/api-client-react";
 import type { Project } from "@workspace/api-client-react";
@@ -9,13 +9,6 @@ export function UIOverlay() {
   const { data: projects } = useGetProjects();
   const { data: settings } = useGetSettings();
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
-  const [scrollY, setScrollY] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const heroTagline = settings?.heroTagline || "CREATIVE DIGITAL EXPERIENCES";
   const heroSubtitle = settings?.heroSubtitle || "We blend story, art & technology";
@@ -57,7 +50,7 @@ export function UIOverlay() {
         </motion.div>
       </section>
 
-      <section id="about-section" className="min-h-screen flex items-center px-6 md:px-16 lg:px-24 pointer-events-auto" data-testid="about-section">
+      <section id="about-section" data-gsap-section className="min-h-screen flex items-center px-6 md:px-16 lg:px-24 pointer-events-auto" data-testid="about-section">
         <motion.div
           initial={{ opacity: 0, x: -60 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -83,7 +76,7 @@ export function UIOverlay() {
         </motion.div>
       </section>
 
-      <section id="work-section" className="min-h-[200vh] px-6 md:px-16 lg:px-24 pointer-events-auto" data-testid="work-section">
+      <section id="work-section" data-gsap-section className="min-h-[200vh] px-6 md:px-16 lg:px-24 pointer-events-auto" data-testid="work-section">
         <div className="flex flex-col lg:flex-row gap-12 pt-32">
           <div className="lg:w-64 shrink-0">
             <p className="text-xs tracking-[0.2em] uppercase text-foreground/40 font-mono mb-6">WHAT ARE YOU LOOKING FOR?</p>
@@ -137,7 +130,7 @@ export function UIOverlay() {
         </div>
       </section>
 
-      <section id="lab-section" className="min-h-screen flex items-center justify-center px-6 md:px-16 lg:px-24 pointer-events-auto" data-testid="lab-section">
+      <section id="lab-section" data-gsap-section className="min-h-screen flex items-center justify-center px-6 md:px-16 lg:px-24 pointer-events-auto" data-testid="lab-section">
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -155,7 +148,7 @@ export function UIOverlay() {
         </motion.div>
       </section>
 
-      <section id="contact-section" className="min-h-screen flex items-center px-6 md:px-16 lg:px-24 pointer-events-auto" data-testid="contact-section">
+      <section id="contact-section" data-gsap-section className="min-h-screen flex items-center px-6 md:px-16 lg:px-24 pointer-events-auto" data-testid="contact-section">
         <div className="max-w-2xl w-full mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 40 }}

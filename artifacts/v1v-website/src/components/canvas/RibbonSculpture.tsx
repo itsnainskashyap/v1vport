@@ -2,7 +2,11 @@ import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
-export function RibbonSculpture() {
+interface Props {
+  opacity: number;
+}
+
+export function RibbonSculpture({ opacity }: Props) {
   const meshRef = useRef<THREE.Mesh>(null);
 
   const geometry = useMemo(() => {
@@ -24,6 +28,7 @@ export function RibbonSculpture() {
     if (meshRef.current) {
       meshRef.current.rotation.y = state.clock.elapsedTime * 0.08;
       meshRef.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.12) * 0.05;
+      (meshRef.current.material as THREE.MeshPhysicalMaterial).opacity = opacity * 0.85;
     }
   });
 
@@ -38,7 +43,7 @@ export function RibbonSculpture() {
         clearcoat={1}
         clearcoatRoughness={0.05}
         transparent
-        opacity={0.85}
+        opacity={opacity * 0.85}
       />
     </mesh>
   );

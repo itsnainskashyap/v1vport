@@ -4,16 +4,16 @@ import * as THREE from "three";
 
 interface Props {
   count: number;
+  scrollProgress: number;
 }
 
-export function ParticleField({ count }: Props) {
+export function ParticleField({ count, scrollProgress }: Props) {
   const pointsRef = useRef<THREE.Points>(null);
 
-  const { positions, basePositions, colors, sizes } = useMemo(() => {
+  const { positions, basePositions, colors } = useMemo(() => {
     const positions = new Float32Array(count * 3);
     const basePositions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
-    const sizes = new Float32Array(count);
 
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
@@ -41,11 +41,9 @@ export function ParticleField({ count }: Props) {
       } else {
         colors[i3] = 0.55; colors[i3 + 1] = 0.36; colors[i3 + 2] = 0.96;
       }
-
-      sizes[i] = 0.5 + Math.random() * 2.5;
     }
 
-    return { positions, basePositions, colors, sizes };
+    return { positions, basePositions, colors };
   }, [count]);
 
   useFrame((state) => {
@@ -57,8 +55,9 @@ export function ParticleField({ count }: Props) {
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
       const speed = 0.05 + (i % 7) * 0.008;
+      const scrollOffset = scrollProgress * 3;
       arr[i3] = basePositions[i3] + Math.sin(t * speed + i) * 0.15;
-      arr[i3 + 1] = basePositions[i3 + 1] + Math.cos(t * speed * 0.7 + i * 0.5) * 0.15;
+      arr[i3 + 1] = basePositions[i3 + 1] + Math.cos(t * speed * 0.7 + i * 0.5) * 0.15 - scrollOffset;
       arr[i3 + 2] = basePositions[i3 + 2] + Math.sin(t * speed * 0.5 + i * 0.3) * 0.12;
     }
     pos.needsUpdate = true;
@@ -75,10 +74,6 @@ export function ParticleField({ count }: Props) {
         <bufferAttribute
           attach="attributes-color"
           args={[colors, 3]}
-        />
-        <bufferAttribute
-          attach="attributes-size"
-          args={[sizes, 1]}
         />
       </bufferGeometry>
       <pointsMaterial
