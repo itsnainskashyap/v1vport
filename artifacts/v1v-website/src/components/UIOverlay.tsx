@@ -10,9 +10,14 @@ interface Props {
 
 function clampOpacity(progress: number, fadeIn: number, peak: number, fadeOut: number): number {
   if (progress < fadeIn) return 0;
-  if (progress < peak) return Math.min(1, (progress - fadeIn) / (peak - fadeIn));
+  if (progress < peak) {
+    const range = peak - fadeIn;
+    if (range <= 0) return 1;
+    return Math.min(1, Math.max(0, (progress - fadeIn) / range));
+  }
   if (progress < fadeOut) return 1;
-  return Math.max(0, 1 - (progress - fadeOut) / 0.08);
+  const fadeRange = 0.08;
+  return Math.max(0, Math.min(1, 1 - (progress - fadeOut) / fadeRange));
 }
 
 export function UIOverlay({ scrollProgress, onNavigate }: Props) {

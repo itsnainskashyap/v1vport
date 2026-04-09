@@ -37,7 +37,7 @@ V1V Creative Studio website — a cinematic, full-screen immersive WebGL-first w
 ### Frontend Structure (Scroll-Driven 3D World)
 - `pages/Home.tsx` — Full-screen canvas with virtual scroll height (600vh). Lenis smooth scroll drives scrollProgress (0→1). No normal HTML sections — camera travels through 3D space.
 - `pages/Admin.tsx` — Password-protected admin dashboard (projects CRUD, settings, social links, theme colors)
-- `components/canvas/Scene.tsx` — Three.js R3F canvas with post-processing (bloom, chromatic aberration, sporadic glitch, vignette). Camera FOV 55, far plane 200.
+- `components/canvas/Scene.tsx` — Three.js R3F canvas with post-processing (bloom, chromatic aberration, sporadic glitch, vignette). Camera FOV 55, far plane 200. Includes WebGL detection (tests context creation, basic operations, and context-lost state) with automatic fallback. Catches `webglcontextlost` events at runtime via `onCreated` handler. CSS fallback: 300 multi-colored animated stars with parallax, 3 orbital rings with glow dots, animated nebula gradients, vignette edge darkening. Fallback responds to scroll progress for parallax depth.
 - `components/canvas/ScrollScene.tsx` — Camera-driven 3D orchestration. Camera travels z=8 → z=-75. Mouse parallax. 3D project cards with real texture maps. Shows/hides elements by scroll zones (hero→about→work→cage→lab).
 - `components/canvas/GlassTorusLogo.tsx` — Iridescent glass torus with embedded V1V logo mark (ExtrudeGeometry)
 - `components/canvas/RibbonSculpture.tsx` — Lemniscate wire sculpture (figure-8 TubeGeometry)

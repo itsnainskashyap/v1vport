@@ -9,28 +9,36 @@ export function LoadingScreen({ onComplete }: Props) {
   const [progress, setProgress] = useState(0);
   const [visible, setVisible] = useState(true);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const progressRef = useRef(0);
 
   useEffect(() => {
-    let start = Date.now();
-    const duration = 2800;
+    const start = Date.now();
+    const duration = 1500;
     let rafId: number;
+    let t1: ReturnType<typeof setTimeout>;
+    let t2: ReturnType<typeof setTimeout>;
 
     function tick() {
       const elapsed = Date.now() - start;
       const p = Math.min(1, elapsed / duration);
       const eased = 1 - Math.pow(1 - p, 3);
+      progressRef.current = eased;
       setProgress(eased);
       if (p < 1) {
         rafId = requestAnimationFrame(tick);
       } else {
-        setTimeout(() => {
+        t1 = setTimeout(() => {
           setVisible(false);
-          setTimeout(onComplete, 600);
+          t2 = setTimeout(onComplete, 600);
         }, 300);
       }
     }
     rafId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafId);
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, [onComplete]);
 
   useEffect(() => {
@@ -47,6 +55,7 @@ export function LoadingScreen({ onComplete }: Props) {
 
     function draw() {
       if (!ctx) return;
+      const currentProgress = progressRef.current;
       ctx.clearRect(0, 0, 200, 200);
       const cx = 100;
       const cy = 100;
@@ -59,7 +68,7 @@ export function LoadingScreen({ onComplete }: Props) {
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.stroke();
 
-      const angle = progress * Math.PI * 2 - Math.PI / 2;
+      const angle = currentProgress * Math.PI * 2 - Math.PI / 2;
       ctx.strokeStyle = "rgba(0, 240, 255, 0.8)";
       ctx.lineWidth = 2;
       ctx.lineCap = "round";
@@ -115,7 +124,7 @@ export function LoadingScreen({ onComplete }: Props) {
     }
     animRaf = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(animRaf);
-  }, [progress]);
+  }, []);
 
   return (
     <AnimatePresence>
