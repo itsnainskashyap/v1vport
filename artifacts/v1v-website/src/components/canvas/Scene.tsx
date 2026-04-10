@@ -1,5 +1,5 @@
 import { Canvas } from "@react-three/fiber";
-import { Suspense, useState, useMemo, useEffect } from "react";
+import { Suspense, useState, useMemo, useEffect, useCallback } from "react";
 import { ScrollScene } from "./ScrollScene";
 import { Bloom, EffectComposer, Vignette, ChromaticAberration, Glitch } from "@react-three/postprocessing";
 import { BlendFunction, GlitchMode } from "postprocessing";
@@ -124,21 +124,51 @@ interface SceneProps {
   onCardClick?: (index: number) => void;
 }
 
+function LoadingOverlay({ visible }: { visible: boolean }) {
+  if (!visible) return null;
+  return (
+    <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#030812]">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-2 border-[rgba(85,170,255,0.3)] border-t-[rgba(85,170,255,0.9)] rounded-full animate-spin" />
+        <p className="text-[rgba(85,170,255,0.7)] text-sm tracking-[0.2em] uppercase font-light">
+          Loading Experience
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function SceneReadyNotifier({ onReady }: { onReady: () => void }) {
+  useEffect(() => {
+    onReady();
+  }, [onReady]);
+  return null;
+}
+
 export function Scene({ scrollProgress, handPosition, onCardClick }: SceneProps) {
   const [webglSupported, setWebglSupported] = useState<boolean | null>(null);
   const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const glitchDelay = useMemo(() => new Vector2(18, 35), []);
   const glitchDuration = useMemo(() => new Vector2(0.02, 0.08), []);
   const glitchStrength = useMemo(() => new Vector2(0.005, 0.02), []);
   const chromaOffset = useMemo(() => new Vector2(0.0005, 0.0005), []);
 
+  const handleSceneReady = useCallback(() => {
+    setIsLoading(false);
+  }, []);
+
   useEffect(() => {
     setWebglSupported(detectWebGL());
   }, []);
 
   if (webglSupported === null) {
-    return <div className="w-full h-full bg-[#030812]" />;
+    return (
+      <div className="w-full h-full bg-[#030812] relative">
+        <LoadingOverlay visible={true} />
+      </div>
+    );
   }
 
   if (!webglSupported || hasError) {
@@ -146,7 +176,8 @@ export function Scene({ scrollProgress, handPosition, onCardClick }: SceneProps)
   }
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full relative">
+      <LoadingOverlay visible={isLoading} />
       <CanvasErrorBoundary fallback={<CSSFallbackScene scrollProgress={scrollProgress} />}>
         <Canvas
           camera={{ position: [0, 0, 8], fov: 55, near: 0.1, far: 200 }}
@@ -189,6 +220,7 @@ export function Scene({ scrollProgress, handPosition, onCardClick }: SceneProps)
               />
               <Vignette darkness={0.75} offset={0.18} />
             </EffectComposer>
+            <SceneReadyNotifier onReady={handleSceneReady} />
           </Suspense>
         </Canvas>
       </CanvasErrorBoundary>
