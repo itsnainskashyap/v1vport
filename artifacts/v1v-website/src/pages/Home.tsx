@@ -4,7 +4,6 @@ import { Scene } from "@/components/canvas/Scene";
 import { UIOverlay } from "@/components/UIOverlay";
 import { CinematicIntro } from "@/components/CinematicIntro";
 import { SoundManager } from "@/components/SoundManager";
-import { HandGesture } from "@/components/HandGesture";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import Lenis from "lenis";
 
@@ -16,16 +15,9 @@ const SECTION_TARGETS: Record<string, number> = {
   contact: 0.88,
 };
 
-interface HandPosition {
-  x: number;
-  y: number;
-}
-
 export default function Home() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [introComplete, setIntroComplete] = useState(false);
-  const [sceneReady, setSceneReady] = useState(false);
-  const [handPosition, setHandPosition] = useState<HandPosition | null>(null);
   const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
   const lenisRef = useRef<Lenis | null>(null);
 
@@ -72,49 +64,6 @@ export default function Home() {
 
   const handleIntroComplete = useCallback(() => {
     setIntroComplete(true);
-    setTimeout(() => setSceneReady(true), 500);
-  }, []);
-
-  const handleHandMove = useCallback((position: HandPosition | null) => {
-    setHandPosition(position);
-  }, []);
-
-  const handleGestureScroll = useCallback((direction: "up" | "down") => {
-    const lenis = lenisRef.current;
-    if (!lenis) return;
-    const scrollContainer = document.documentElement;
-    const maxScroll = scrollContainer.scrollHeight - scrollContainer.clientHeight;
-    const currentScroll = window.scrollY;
-    const step = maxScroll * 0.05;
-
-    if (direction === "down") {
-      lenis.scrollTo(Math.min(currentScroll + step, maxScroll), { duration: 1.2 });
-    } else {
-      lenis.scrollTo(Math.max(currentScroll - step, 0), { duration: 1.2 });
-    }
-  }, []);
-
-  const handleGestureSelect = useCallback(() => {
-    const clickableElements = document.querySelectorAll(".interactive");
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
-    let closest: Element | null = null;
-    let closestDist = Infinity;
-
-    clickableElements.forEach((el) => {
-      const rect = el.getBoundingClientRect();
-      const elCenterX = rect.left + rect.width / 2;
-      const elCenterY = rect.top + rect.height / 2;
-      const dist = Math.hypot(elCenterX - centerX, elCenterY - centerY);
-      if (dist < closestDist) {
-        closestDist = dist;
-        closest = el;
-      }
-    });
-
-    if (closest && closestDist < 200) {
-      (closest as HTMLElement).click();
-    }
   }, []);
 
   const handleCardClick = useCallback((index: number) => {
@@ -131,7 +80,7 @@ export default function Home() {
 
       <div className="fixed inset-0 z-0">
         {introComplete ? (
-          <Scene scrollProgress={scrollProgress} handPosition={handPosition} onCardClick={handleCardClick} />
+          <Scene scrollProgress={scrollProgress} onCardClick={handleCardClick} />
         ) : (
           <div className="w-full h-full bg-[#030812]" />
         )}
@@ -145,14 +94,6 @@ export default function Home() {
       />
 
       <div style={{ height: `${SCROLL_HEIGHT}vh` }} className="pointer-events-none" aria-hidden="true" />
-
-      {sceneReady && (
-        <HandGesture
-          onHandMove={handleHandMove}
-          onGestureScroll={handleGestureScroll}
-          onGestureSelect={handleGestureSelect}
-        />
-      )}
 
       <SoundManager scrollProgress={scrollProgress} active={introComplete} />
 

@@ -2,18 +2,17 @@ import { useRef, useEffect, useMemo, Suspense } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { ParticleText } from "./ParticleText";
-import { CosmicOrbit } from "./CosmicOrbit";
+import { BlackHole } from "./BlackHole";
 import { ParticleField } from "./ParticleField";
 import { FloatingImages } from "./FloatingImages";
 import { Spaceship } from "./Spaceship";
 
 interface Props {
   scrollProgress: number;
-  handPosition?: { x: number; y: number } | null;
   onCardClick?: (index: number) => void;
 }
 
-export function ScrollScene({ scrollProgress, handPosition, onCardClick }: Props) {
+export function ScrollScene({ scrollProgress, onCardClick }: Props) {
   const { camera } = useThree();
   const mouse = useRef({ x: 0, y: 0 });
   const smoothProgress = useRef(0);
@@ -74,13 +73,8 @@ export function ScrollScene({ scrollProgress, handPosition, onCardClick }: Props
     cameraX = THREE.MathUtils.lerp(cameraX, targetTextX, textInfluence * 0.85);
     cameraY = THREE.MathUtils.lerp(cameraY, targetTextY, textInfluence * 0.6);
 
-    let parallaxX = mouse.current.x * 0.4;
-    let parallaxY = mouse.current.y * 0.25;
-
-    if (handPosition) {
-      parallaxX = handPosition.x * 1.5;
-      parallaxY = handPosition.y * 1.0;
-    }
+    const parallaxX = mouse.current.x * 0.4;
+    const parallaxY = mouse.current.y * 0.25;
 
     camera.position.x = THREE.MathUtils.lerp(camera.position.x, cameraX + parallaxX, 0.04);
     camera.position.y = THREE.MathUtils.lerp(camera.position.y, cameraY + parallaxY, 0.04);
@@ -214,9 +208,11 @@ export function ScrollScene({ scrollProgress, handPosition, onCardClick }: Props
         />
       </group>
 
-      <group visible={dnaOpacity > 0.01}>
-        <CosmicOrbit scrollProgress={scrollProgress} opacity={dnaOpacity} onCardClick={onCardClick} />
-      </group>
+      <Suspense fallback={null}>
+        <group visible={dnaOpacity > 0.01}>
+          <BlackHole scrollProgress={scrollProgress} opacity={dnaOpacity} onCardClick={onCardClick} />
+        </group>
+      </Suspense>
 
       <group visible={text5Opacity > 0.01}>
         <ParticleText

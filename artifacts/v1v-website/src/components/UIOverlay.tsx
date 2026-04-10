@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useGetSettings, useGetProjects } from "@workspace/api-client-react";
 import { Navigation } from "./Navigation";
@@ -29,7 +29,6 @@ export function UIOverlay({ scrollProgress, onNavigate, selectedCardIndex, onCle
   const { data: projects } = useGetProjects();
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [showContactPopup, setShowContactPopup] = useState(false);
-  const contactTriggered = useRef(false);
 
   const contactEmail = settings?.contactEmail || "hello@v1v.in";
 
@@ -45,18 +44,8 @@ export function UIOverlay({ scrollProgress, onNavigate, selectedCardIndex, onCle
     }
   }, [selectedCardIndex, projectList, onClearCardSelection]);
 
-  useEffect(() => {
-    if (scrollProgress >= 0.88 && !contactTriggered.current) {
-      contactTriggered.current = true;
-      setShowContactPopup(true);
-    }
-    if (scrollProgress < 0.80) {
-      contactTriggered.current = false;
-    }
-  }, [scrollProgress]);
-
   const scrollIndicatorOpacity = Math.max(0, 1 - scrollProgress * 8);
-  const dnaLabelOpacity = clampOpacity(scrollProgress, 0.30, 0.34, 0.55);
+  const bhLabelOpacity = clampOpacity(scrollProgress, 0.30, 0.34, 0.55);
   const workLabelOpacity = clampOpacity(scrollProgress, 0.32, 0.36, 0.55);
   const contactOpacity = clampOpacity(scrollProgress, 0.82, 0.86, 1.0);
 
@@ -70,7 +59,10 @@ export function UIOverlay({ scrollProgress, onNavigate, selectedCardIndex, onCle
 
   return (
     <>
-      <Navigation onNavigate={onNavigate} />
+      <Navigation
+        onNavigate={onNavigate}
+        onContactClick={() => setShowContactPopup(true)}
+      />
 
       <div
         className="fixed bottom-12 left-1/2 -translate-x-1/2 z-10 pointer-events-none flex flex-col items-center"
@@ -84,12 +76,12 @@ export function UIOverlay({ scrollProgress, onNavigate, selectedCardIndex, onCle
 
       <div
         className="fixed left-8 top-1/2 -translate-y-1/2 z-10 pointer-events-none"
-        style={{ opacity: dnaLabelOpacity, visibility: dnaLabelOpacity < 0.01 ? "hidden" : "visible" }}
+        style={{ opacity: bhLabelOpacity, visibility: bhLabelOpacity < 0.01 ? "hidden" : "visible" }}
       >
         <p className="text-[8px] tracking-[0.3em] uppercase text-[rgba(85,170,255,0.35)] font-mono writing-vertical"
           style={{ writingMode: "vertical-rl", letterSpacing: "0.3em" }}
         >
-          COSMIC ORBIT
+          BLACK HOLE
         </p>
       </div>
 
