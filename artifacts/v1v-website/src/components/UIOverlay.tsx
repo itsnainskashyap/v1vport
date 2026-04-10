@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useGetSettings, useGetProjects } from "@workspace/api-client-react";
 import { Navigation } from "./Navigation";
 import { ProjectModal } from "./ProjectModal";
+import { ContactPopup } from "./ContactPopup";
 
 interface Props {
   scrollProgress: number;
@@ -27,6 +28,8 @@ export function UIOverlay({ scrollProgress, onNavigate, selectedCardIndex, onCle
   const { data: settings } = useGetSettings();
   const { data: projects } = useGetProjects();
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [showContactPopup, setShowContactPopup] = useState(false);
+  const contactTriggered = useRef(false);
 
   const contactEmail = settings?.contactEmail || "hello@v1v.in";
 
@@ -41,6 +44,16 @@ export function UIOverlay({ scrollProgress, onNavigate, selectedCardIndex, onCle
       }
     }
   }, [selectedCardIndex, projectList, onClearCardSelection]);
+
+  useEffect(() => {
+    if (scrollProgress >= 0.88 && !contactTriggered.current) {
+      contactTriggered.current = true;
+      setShowContactPopup(true);
+    }
+    if (scrollProgress < 0.80) {
+      contactTriggered.current = false;
+    }
+  }, [scrollProgress]);
 
   const scrollIndicatorOpacity = Math.max(0, 1 - scrollProgress * 8);
   const dnaLabelOpacity = clampOpacity(scrollProgress, 0.30, 0.34, 0.55);
@@ -76,7 +89,7 @@ export function UIOverlay({ scrollProgress, onNavigate, selectedCardIndex, onCle
         <p className="text-[8px] tracking-[0.3em] uppercase text-[rgba(85,170,255,0.35)] font-mono writing-vertical"
           style={{ writingMode: "vertical-rl", letterSpacing: "0.3em" }}
         >
-          DNA OF CREATIVITY
+          COSMIC ORBIT
         </p>
       </div>
 
@@ -238,6 +251,18 @@ export function UIOverlay({ scrollProgress, onNavigate, selectedCardIndex, onCle
           <ProjectModal
             projectId={selectedProjectId}
             onClose={() => setSelectedProjectId(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showContactPopup && (
+          <ContactPopup
+            contactEmail={contactEmail}
+            contactPhone={settings?.contactPhone}
+            whatsappLink={whatsappLink}
+            socialLinks={settings?.socialLinks}
+            onClose={() => setShowContactPopup(false)}
           />
         )}
       </AnimatePresence>

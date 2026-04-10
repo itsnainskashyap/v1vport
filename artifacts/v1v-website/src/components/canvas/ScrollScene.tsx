@@ -2,7 +2,7 @@ import { useRef, useEffect, useMemo, Suspense } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { ParticleText } from "./ParticleText";
-import { DNAHelix } from "./DNAHelix";
+import { CosmicOrbit } from "./CosmicOrbit";
 import { ParticleField } from "./ParticleField";
 import { FloatingImages } from "./FloatingImages";
 import { Spaceship } from "./Spaceship";
@@ -215,7 +215,7 @@ export function ScrollScene({ scrollProgress, handPosition, onCardClick }: Props
       </group>
 
       <group visible={dnaOpacity > 0.01}>
-        <DNAHelix scrollProgress={scrollProgress} opacity={dnaOpacity} onCardClick={onCardClick} />
+        <CosmicOrbit scrollProgress={scrollProgress} opacity={dnaOpacity} onCardClick={onCardClick} />
       </group>
 
       <group visible={text5Opacity > 0.01}>

@@ -180,9 +180,15 @@ export function Spaceship({ scrollProgress }: Props) {
       const gentleWobbleX = Math.sin(t * 0.25) * 0.15;
       const gentleWobbleY = Math.cos(t * 0.2) * 0.1;
 
-      const targetX = camPathX + sideOffset.current + gentleWobbleX;
+      let targetX = camPathX + sideOffset.current + gentleWobbleX;
       const targetY = camPathY + 1.2 + gentleWobbleY;
       const targetZ = camPathZ - 6;
+
+      const isMobileView = window.innerWidth < 768;
+      if (isMobileView) {
+        const maxOffsetX = 3.5;
+        targetX = THREE.MathUtils.clamp(targetX, camPathX - maxOffsetX, camPathX + maxOffsetX);
+      }
 
       const targetPos = new THREE.Vector3(targetX, targetY, targetZ);
       groupRef.current.position.lerp(targetPos, 0.04);

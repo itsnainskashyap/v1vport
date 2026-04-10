@@ -237,12 +237,12 @@ export function CinematicIntro({ onComplete }: Props) {
                       <motion.p
                         initial={{ opacity: 0, y: 30, letterSpacing: "0.8em" }}
                         animate={{
-                          opacity: phase === "out" ? 0 : 0.35,
+                          opacity: phase === "out" ? 0 : 0.85,
                           y: phase === "out" ? -20 : 0,
                           letterSpacing: "0.4em",
                         }}
                         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                        className="text-xs md:text-sm font-mono text-[rgba(85,170,255,0.35)] tracking-[0.4em] uppercase mb-6"
+                        className="text-xs md:text-sm font-mono text-[rgba(85,170,255,0.9)] tracking-[0.4em] uppercase mb-6"
                       >
                         {line.text}
                       </motion.p>
@@ -267,11 +267,11 @@ export function CinematicIntro({ onComplete }: Props) {
                       <motion.p
                         initial={{ opacity: 0, letterSpacing: "0.6em" }}
                         animate={{
-                          opacity: phase === "out" ? 0 : 0.3,
+                          opacity: phase === "out" ? 0 : 0.8,
                           letterSpacing: "0.3em",
                         }}
                         transition={{ duration: 0.8 }}
-                        className="text-xs md:text-sm font-mono text-[rgba(170,85,255,0.4)] uppercase mb-6"
+                        className="text-xs md:text-sm font-mono text-[rgba(170,85,255,0.9)] uppercase mb-6"
                       >
                         {line.text}
                       </motion.p>
@@ -301,11 +301,11 @@ export function CinematicIntro({ onComplete }: Props) {
                       <motion.p
                         initial={{ opacity: 0, x: -100 }}
                         animate={{
-                          opacity: phase === "out" ? 0 : 0.35,
+                          opacity: phase === "out" ? 0 : 0.85,
                           x: phase === "out" ? -50 : 0,
                         }}
                         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                        className="text-lg md:text-2xl font-mono text-[rgba(85,170,255,0.35)] tracking-[0.3em] uppercase"
+                        className="text-lg md:text-2xl font-mono text-[rgba(85,170,255,0.9)] tracking-[0.3em] uppercase"
                       >
                         {line.text}
                       </motion.p>
@@ -329,11 +329,11 @@ export function CinematicIntro({ onComplete }: Props) {
                       <motion.p
                         initial={{ opacity: 0, scale: 0.5 }}
                         animate={{
-                          opacity: phase === "out" ? 0 : 0.3,
+                          opacity: phase === "out" ? 0 : 0.8,
                           scale: phase === "out" ? 1.2 : 1,
                         }}
                         transition={{ duration: 0.6 }}
-                        className="text-xs md:text-sm font-mono text-[rgba(255,170,85,0.4)] tracking-[0.3em] uppercase mb-6"
+                        className="text-xs md:text-sm font-mono text-[rgba(255,170,85,0.9)] tracking-[0.3em] uppercase mb-6"
                       >
                         {line.text}
                       </motion.p>
@@ -395,7 +395,7 @@ export function CinematicIntro({ onComplete }: Props) {
             animate={{ opacity: 0.2 }}
             transition={{ delay: 0.5 }}
           >
-            <p className="text-[9px] font-mono tracking-[0.3em] text-[rgba(255,255,255,0.3)]">V1V STUDIO</p>
+            <p className="text-[10px] font-mono tracking-[0.3em] text-[rgba(255,255,255,0.6)]">V1V STUDIO</p>
           </motion.div>
 
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 w-48">
@@ -406,14 +406,14 @@ export function CinematicIntro({ onComplete }: Props) {
                 transition={{ duration: 0.1 }}
               />
             </div>
-            <p className="text-[7px] font-mono tracking-[0.2em] text-[rgba(255,255,255,0.1)] text-center mt-2">
+            <p className="text-[8px] font-mono tracking-[0.2em] text-[rgba(255,255,255,0.4)] text-center mt-2">
               {Math.round(progress * 100)}%
             </p>
           </div>
 
           <button
             onClick={handleSkip}
-            className="absolute bottom-8 right-8 z-10 text-[8px] tracking-[0.3em] uppercase text-[rgba(255,255,255,0.12)] hover:text-[rgba(255,255,255,0.4)] transition-colors font-mono interactive px-3 py-1 border border-[rgba(255,255,255,0.05)] hover:border-[rgba(255,255,255,0.15)] rounded-full"
+            className="absolute bottom-8 right-8 z-10 text-[10px] tracking-[0.3em] uppercase text-[rgba(255,255,255,0.5)] hover:text-[rgba(255,255,255,0.9)] transition-colors font-mono interactive px-4 py-2 border border-[rgba(255,255,255,0.2)] hover:border-[rgba(255,255,255,0.5)] rounded-full backdrop-blur-sm bg-[rgba(255,255,255,0.05)]"
           >
             SKIP
           </button>
