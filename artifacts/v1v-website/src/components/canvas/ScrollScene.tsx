@@ -5,12 +5,14 @@ import { ParticleText } from "./ParticleText";
 import { ParticleField } from "./ParticleField";
 import { FloatingImages } from "./FloatingImages";
 import { Spaceship } from "./Spaceship";
+import { ProjectCards3D } from "./ProjectCards3D";
 
 interface Props {
   scrollProgress: number;
+  onCardClick?: (index: number) => void;
 }
 
-export function ScrollScene({ scrollProgress }: Props) {
+export function ScrollScene({ scrollProgress, onCardClick }: Props) {
   const { camera } = useThree();
   const mouse = useRef({ x: 0, y: 0 });
   const smoothProgress = useRef(0);
@@ -278,6 +280,10 @@ export function ScrollScene({ scrollProgress }: Props) {
 
       <Suspense fallback={null}>
         <Spaceship scrollProgress={scrollProgress} />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <ProjectCards3D onCardClick={onCardClick} />
       </Suspense>
 
       <ParticleField count={isMobile ? 6000 : isTablet ? 12000 : 22000} scrollProgress={scrollProgress} />

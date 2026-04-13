@@ -18,6 +18,7 @@ const SECTION_TARGETS: Record<string, number> = {
 export default function Home() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [introComplete, setIntroComplete] = useState(false);
+  const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
   const lenisRef = useRef<Lenis | null>(null);
 
   useThemeColors();
@@ -65,13 +66,21 @@ export default function Home() {
     setIntroComplete(true);
   }, []);
 
+  const handleCardClick = useCallback((index: number) => {
+    setSelectedCardIndex(index);
+  }, []);
+
+  const handleClearCardSelection = useCallback(() => {
+    setSelectedCardIndex(null);
+  }, []);
+
   return (
     <>
       {!introComplete && <CinematicIntro onComplete={handleIntroComplete} />}
 
       <div className="fixed inset-0 z-0">
         {introComplete ? (
-          <Scene scrollProgress={scrollProgress} />
+          <Scene scrollProgress={scrollProgress} onCardClick={handleCardClick} />
         ) : (
           <div className="w-full h-full bg-[#030812]" />
         )}
@@ -80,6 +89,8 @@ export default function Home() {
       <UIOverlay
         scrollProgress={scrollProgress}
         onNavigate={handleNavigate}
+        selectedCardIndex={selectedCardIndex}
+        onClearCardSelection={handleClearCardSelection}
       />
 
       <div style={{ height: `${SCROLL_HEIGHT}vh` }} className="pointer-events-none" aria-hidden="true" />
