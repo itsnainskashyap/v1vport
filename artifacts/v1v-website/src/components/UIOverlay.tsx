@@ -30,8 +30,8 @@ const PROJECT_IMAGES = [
   "projects/stellar.png",
 ];
 
-const ZONE_START = 0.28;
-const ZONE_END = 0.58;
+const ZONE_START = 0.65;
+const ZONE_END = 0.82;
 const NUM_PAIRS = 3;
 const PAIR_WIDTH = (ZONE_END - ZONE_START) / NUM_PAIRS;
 const FADE = 0.025;
