@@ -1,10 +1,11 @@
 import { useRef } from "react";
-import { useLoader, useFrame } from "@react-three/fiber";
+import { useLoader, useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import { useGetProjects } from "@workspace/api-client-react";
 
 interface Props {
+  scrollProgress: number;
   onCardClick?: (index: number) => void;
 }
 
@@ -35,6 +36,8 @@ function ProjectCard({
   title,
   category,
   index,
+  visible,
+  opacity,
   onCardClick,
 }: {
   position: [number, number, number];
@@ -44,6 +47,8 @@ function ProjectCard({
   title: string;
   category: string;
   index: number;
+  visible: boolean;
+  opacity: number;
   onCardClick?: (i: number) => void;
 }) {
   const groupRef = useRef<THREE.Group>(null);
@@ -53,6 +58,8 @@ function ProjectCard({
     const t = state.clock.elapsedTime;
     groupRef.current.position.y = position[1] + Math.sin(t * 0.4 + index * 1.3) * 0.12;
   });
+
+  if (!visible) return null;
 
   return (
     <group ref={groupRef} position={position} rotation={[rotX, rotY, 0]}>
@@ -65,7 +72,7 @@ function ProjectCard({
         <meshBasicMaterial
           map={texture}
           transparent
-          opacity={0.95}
+          opacity={opacity * 0.95}
           side={THREE.DoubleSide}
         />
       </mesh>
@@ -75,7 +82,7 @@ function ProjectCard({
         <meshBasicMaterial
           color="#55aaff"
           transparent
-          opacity={0.14}
+          opacity={opacity * 0.14}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
           side={THREE.DoubleSide}
@@ -87,92 +94,95 @@ function ProjectCard({
         <meshBasicMaterial
           color="#aa55ff"
           transparent
-          opacity={0.06}
+          opacity={opacity * 0.06}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
           side={THREE.DoubleSide}
         />
       </mesh>
 
-      <pointLight intensity={0.9} color="#55aaff" distance={14} />
+      <pointLight intensity={0.9 * opacity} color="#55aaff" distance={14} />
 
-      <Html
-        position={[0, -CARD_H / 2 - 0.42, 0]}
-        center
-        zIndexRange={[0, 0]}
-        style={{ pointerEvents: "none", userSelect: "none" }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "7px",
-            pointerEvents: "auto",
-            transform: "scale(1)",
-            whiteSpace: "nowrap",
-          }}
+      {opacity > 0.3 && (
+        <Html
+          position={[0, -CARD_H / 2 - 0.42, 0]}
+          center
+          zIndexRange={[0, 0]}
+          style={{ pointerEvents: "none", userSelect: "none" }}
         >
           <div
             style={{
-              color: "rgba(255,255,255,0.9)",
-              fontFamily: "monospace",
-              fontSize: "11px",
-              letterSpacing: "0.22em",
-              textTransform: "uppercase",
-              textShadow: "0 0 14px rgba(85,170,255,1), 0 0 30px rgba(85,170,255,0.4)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "7px",
+              pointerEvents: "auto",
+              whiteSpace: "nowrap",
+              opacity,
             }}
           >
-            {title}
+            <div
+              style={{
+                color: "rgba(255,255,255,0.9)",
+                fontFamily: "monospace",
+                fontSize: "11px",
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                textShadow: "0 0 14px rgba(85,170,255,1), 0 0 30px rgba(85,170,255,0.4)",
+              }}
+            >
+              {title}
+            </div>
+            <div
+              style={{
+                color: "rgba(170,170,255,0.5)",
+                fontFamily: "monospace",
+                fontSize: "8px",
+                letterSpacing: "0.2em",
+                textTransform: "uppercase",
+              }}
+            >
+              {category}
+            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); onCardClick?.(index); }}
+              style={{
+                marginTop: "2px",
+                padding: "5px 18px",
+                background: "rgba(85,170,255,0.12)",
+                border: "1px solid rgba(85,170,255,0.35)",
+                borderRadius: "100px",
+                color: "rgba(85,170,255,0.95)",
+                fontFamily: "monospace",
+                fontSize: "8px",
+                letterSpacing: "0.28em",
+                textTransform: "uppercase",
+                cursor: "pointer",
+                backdropFilter: "blur(10px)",
+                transition: "background 0.2s, color 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                (e.target as HTMLButtonElement).style.background = "rgba(85,170,255,0.28)";
+                (e.target as HTMLButtonElement).style.color = "white";
+              }}
+              onMouseLeave={(e) => {
+                (e.target as HTMLButtonElement).style.background = "rgba(85,170,255,0.12)";
+                (e.target as HTMLButtonElement).style.color = "rgba(85,170,255,0.95)";
+              }}
+            >
+              DETAILS
+            </button>
           </div>
-          <div
-            style={{
-              color: "rgba(170,170,255,0.5)",
-              fontFamily: "monospace",
-              fontSize: "8px",
-              letterSpacing: "0.2em",
-              textTransform: "uppercase",
-            }}
-          >
-            {category}
-          </div>
-          <button
-            onClick={(e) => { e.stopPropagation(); onCardClick?.(index); }}
-            style={{
-              marginTop: "2px",
-              padding: "5px 18px",
-              background: "rgba(85,170,255,0.12)",
-              border: "1px solid rgba(85,170,255,0.35)",
-              borderRadius: "100px",
-              color: "rgba(85,170,255,0.95)",
-              fontFamily: "monospace",
-              fontSize: "8px",
-              letterSpacing: "0.28em",
-              textTransform: "uppercase",
-              cursor: "pointer",
-              backdropFilter: "blur(10px)",
-              transition: "background 0.2s, color 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              (e.target as HTMLButtonElement).style.background = "rgba(85,170,255,0.28)";
-              (e.target as HTMLButtonElement).style.color = "white";
-            }}
-            onMouseLeave={(e) => {
-              (e.target as HTMLButtonElement).style.background = "rgba(85,170,255,0.12)";
-              (e.target as HTMLButtonElement).style.color = "rgba(85,170,255,0.95)";
-            }}
-          >
-            DETAILS
-          </button>
-        </div>
-      </Html>
+        </Html>
+      )}
     </group>
   );
 }
 
-export function ProjectCards3D({ onCardClick }: Props) {
+export function ProjectCards3D({ scrollProgress, onCardClick }: Props) {
   const basePath = import.meta.env.BASE_URL;
   const { data: projects } = useGetProjects();
+  const { camera } = useThree();
   const textures = useLoader(
     THREE.TextureLoader,
     PROJECT_IMAGES.map((p) => basePath + p)
@@ -185,6 +195,13 @@ export function ProjectCards3D({ onCardClick }: Props) {
       {CARD_CONFIGS.map((cfg, i) => {
         const proj = projectList[i];
         if (!proj) return null;
+
+        const dist = Math.abs(camera.position.z - cfg.z);
+        const fadeStart = 25;
+        const fadeEnd = 18;
+        const cardOpacity = dist > fadeStart ? 0 : dist < fadeEnd ? 1 : (fadeStart - dist) / (fadeStart - fadeEnd);
+        const isVisible = cardOpacity > 0.01;
+
         return (
           <ProjectCard
             key={i}
@@ -195,6 +212,8 @@ export function ProjectCards3D({ onCardClick }: Props) {
             title={proj.title}
             category={proj.category}
             index={i}
+            visible={isVisible}
+            opacity={cardOpacity}
             onCardClick={onCardClick}
           />
         );

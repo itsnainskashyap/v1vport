@@ -283,7 +283,7 @@ export function ScrollScene({ scrollProgress, onCardClick }: Props) {
       </Suspense>
 
       <Suspense fallback={null}>
-        <ProjectCards3D onCardClick={onCardClick} />
+        <ProjectCards3D scrollProgress={scrollProgress} onCardClick={onCardClick} />
       </Suspense>
 
       <ParticleField count={isMobile ? 6000 : isTablet ? 12000 : 22000} scrollProgress={scrollProgress} />

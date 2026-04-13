@@ -11,11 +11,7 @@ export function Spaceship({ scrollProgress }: Props) {
   const groupRef = useRef<THREE.Group>(null);
   const trailRef = useRef<THREE.Points>(null);
   const smoothScroll = useRef(0);
-  const prevScroll = useRef(0);
-  const prevPos = useRef(new THREE.Vector3(0, 2, 6));
-  const velocity = useRef(new THREE.Vector3());
-  const flyAwayPhase = useRef(0);
-  const sideOffset = useRef(0);
+  const prevCamPos = useRef(new THREE.Vector3(0, 0, 8));
   const { camera } = useThree();
 
   const basePath = import.meta.env.BASE_URL;
@@ -127,98 +123,42 @@ export function Spaceship({ scrollProgress }: Props) {
     const t = state.clock.elapsedTime;
 
     smoothScroll.current += (scrollProgress - smoothScroll.current) * 0.04;
-    const p = smoothScroll.current;
 
-    const scrollSpeed = p - prevScroll.current;
-    prevScroll.current = p;
+    const camX = camera.position.x;
+    const camY = camera.position.y;
+    const camZ = camera.position.z;
 
-    const startZ = 8;
-    const endZ = -80;
-    const camPathZ = startZ + (endZ - startZ) * p;
-    const camPathX = Math.sin(p * Math.PI * 4) * 1.5;
-    const camPathY = Math.sin(p * Math.PI * 2.5) * 0.8;
+    const camVelX = camX - prevCamPos.current.x;
+    const camVelY = camY - prevCamPos.current.y;
+    prevCamPos.current.set(camX, camY, camZ);
 
-    const isFlyingAway = p > 0.92;
+    const shipAheadZ = 5;
+    const shipBelowY = 0.8;
+    const gentleWobbleX = Math.sin(t * 0.6) * 0.04;
+    const gentleWobbleY = Math.cos(t * 0.5) * 0.03;
 
-    if (isFlyingAway) {
-      flyAwayPhase.current += 0.015;
-      const flyT = Math.min(flyAwayPhase.current, 1);
-      const eased = flyT * flyT * flyT;
+    const targetX = camX + gentleWobbleX;
+    const targetY = camY - shipBelowY + gentleWobbleY;
+    const targetZ = camZ - shipAheadZ;
 
-      const flyX = camPathX + eased * 30;
-      const flyY = camPathY + eased * 20;
-      const flyZ = camPathZ - eased * 60;
+    groupRef.current.position.lerp(new THREE.Vector3(targetX, targetY, targetZ), 0.06);
 
-      const targetPos = new THREE.Vector3(flyX, flyY, flyZ);
-      groupRef.current.position.lerp(targetPos, 0.05);
+    const bankAngle = THREE.MathUtils.clamp(-camVelX * 18, -Math.PI * 0.35, Math.PI * 0.35);
+    const pitchAngle = THREE.MathUtils.clamp(-camVelY * 8, -Math.PI * 0.15, Math.PI * 0.15);
 
-      const flyScale = 0.0015 * (1 + eased * 0.5);
-      groupRef.current.scale.setScalar(flyScale);
+    const targetQuat = new THREE.Quaternion();
+    const forwardDir = new THREE.Vector3(0, 0, -1);
+    const lookMat = new THREE.Matrix4();
+    lookMat.lookAt(new THREE.Vector3(0, 0, 0), forwardDir, new THREE.Vector3(0, 1, 0));
+    targetQuat.setFromRotationMatrix(lookMat);
 
-      const flyRoll = eased * Math.PI * 1.5;
-      const flyPitch = -eased * 0.5;
-      const targetQuat = new THREE.Quaternion();
-      const euler = new THREE.Euler(flyPitch, 0, flyRoll, "XYZ");
-      targetQuat.setFromEuler(euler);
+    const bankQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), bankAngle);
+    const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitchAngle);
+    targetQuat.multiply(bankQuat).multiply(pitchQuat);
 
-      const forwardQuat = new THREE.Quaternion();
-      const lookDir = new THREE.Vector3(eased * 2, eased, -1).normalize();
-      const mat4 = new THREE.Matrix4();
-      mat4.lookAt(new THREE.Vector3(0, 0, 0), lookDir, new THREE.Vector3(0, 1, 0));
-      forwardQuat.setFromRotationMatrix(mat4);
-      forwardQuat.multiply(targetQuat);
+    groupRef.current.quaternion.slerp(targetQuat, 0.06);
 
-      groupRef.current.quaternion.slerp(forwardQuat, 0.04);
-    } else {
-      flyAwayPhase.current = 0;
-
-      const isContentVisible = isNearTextSection(p);
-      const targetSideOffset = isContentVisible ? 5 : 0;
-      const sideDir = Math.sin(p * 10) > 0 ? 1 : -1;
-      sideOffset.current += (targetSideOffset * sideDir - sideOffset.current) * 0.02;
-
-      const gentleWobbleX = Math.sin(t * 0.25) * 0.15;
-      const gentleWobbleY = Math.cos(t * 0.2) * 0.1;
-
-      let targetX = camPathX + sideOffset.current + gentleWobbleX;
-      const targetY = camPathY + 1.2 + gentleWobbleY;
-      const targetZ = camPathZ - 6;
-
-      const isMobileView = window.innerWidth < 768;
-      if (isMobileView) {
-        const maxOffsetX = 3.5;
-        targetX = THREE.MathUtils.clamp(targetX, camPathX - maxOffsetX, camPathX + maxOffsetX);
-      }
-
-      const targetPos = new THREE.Vector3(targetX, targetY, targetZ);
-      groupRef.current.position.lerp(targetPos, 0.04);
-
-      velocity.current.subVectors(groupRef.current.position, prevPos.current);
-      prevPos.current.copy(groupRef.current.position);
-
-      if (velocity.current.length() > 0.001) {
-        const moveDir = velocity.current.clone().normalize();
-        const targetQuat = new THREE.Quaternion();
-        const up = new THREE.Vector3(0, 1, 0);
-        const mat4 = new THREE.Matrix4();
-        mat4.lookAt(new THREE.Vector3(0, 0, 0), moveDir, up);
-        targetQuat.setFromRotationMatrix(mat4);
-
-        const bankAngle = THREE.MathUtils.clamp(-velocity.current.x * 12, -Math.PI * 0.4, Math.PI * 0.4);
-        const pitchAngle = THREE.MathUtils.clamp(velocity.current.y * 6, -Math.PI * 0.25, Math.PI * 0.25);
-
-        const bankQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), bankAngle);
-        const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitchAngle);
-        targetQuat.multiply(bankQuat).multiply(pitchQuat);
-
-        groupRef.current.quaternion.slerp(targetQuat, 0.04);
-      }
-
-      const targetScale = isContentVisible ? 0.0008 : 0.0015;
-      const currentScale = groupRef.current.scale.x;
-      const newScale = currentScale + (targetScale - currentScale) * 0.03;
-      groupRef.current.scale.setScalar(newScale);
-    }
+    groupRef.current.scale.setScalar(0.0012);
 
     trailPositions.current.unshift(groupRef.current.position.clone());
     if (trailPositions.current.length > trailData.count) {
@@ -235,16 +175,12 @@ export function Spaceship({ scrollProgress }: Props) {
         arr[i * 3 + 2] = tp.z;
       }
       posAttr.needsUpdate = true;
-
-      const trailMat = trailRef.current.material as THREE.PointsMaterial;
-      const trailOpacity = isFlyingAway ? Math.max(0, 0.8 - flyAwayPhase.current * 0.8) : 0.6;
-      trailMat.opacity = trailOpacity;
     }
   });
 
   return (
     <>
-      <group ref={groupRef} scale={[0.0015, 0.0015, 0.0015]}>
+      <group ref={groupRef} scale={[0.0012, 0.0012, 0.0012]}>
         <primitive object={fbx} />
         <pointLight color="#33ccff" intensity={2} distance={8} />
         <pointLight color="#ff5533" intensity={1.5} distance={5} position={[0, 0, 50]} />
@@ -268,22 +204,4 @@ export function Spaceship({ scrollProgress }: Props) {
       </points>
     </>
   );
-}
-
-function isNearTextSection(p: number): boolean {
-  const textRanges = [
-    [0.02, 0.08],
-    [0.08, 0.14],
-    [0.14, 0.22],
-    [0.22, 0.26],
-    [0.26, 0.30],
-    [0.30, 0.58],
-    [0.62, 0.73],
-    [0.74, 0.88],
-    [0.88, 1.0],
-  ];
-  for (const [start, end] of textRanges) {
-    if (p >= start && p <= end) return true;
-  }
-  return false;
 }
