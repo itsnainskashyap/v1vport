@@ -109,8 +109,8 @@ export function ParticleText({
   const materialRef = useRef<THREE.PointsMaterial>(null);
   const [ready, setReady] = useState(false);
 
-  const canvasW = 800;
-  const canvasH = 400;
+  const canvasW = 1600;
+  const canvasH = 800;
 
   const circleMap = useMemo(() => createCircleTexture(), []);
 
@@ -226,7 +226,7 @@ export function ParticleText({
   if (!data) return null;
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-  const particleSize = isMobile ? 0.04 : 0.045;
+  const particleSize = isMobile ? 0.032 : 0.036;
 
   return (
     <group position={position}>

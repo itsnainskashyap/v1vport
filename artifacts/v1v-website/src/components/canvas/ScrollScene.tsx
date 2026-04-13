@@ -92,9 +92,9 @@ export function ScrollScene({ scrollProgress, onCardClick }: Props) {
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
   const isTablet = typeof window !== "undefined" && window.innerWidth >= 768 && window.innerWidth < 1024;
 
-  const heroCount = isMobile ? 8000 : isTablet ? 12000 : 20000;
-  const taglineCount = isMobile ? 4000 : isTablet ? 6000 : 12000;
-  const smallTextCount = isMobile ? 3000 : isTablet ? 5000 : 8000;
+  const heroCount = isMobile ? 14000 : isTablet ? 22000 : 35000;
+  const taglineCount = isMobile ? 8000 : isTablet ? 12000 : 20000;
+  const smallTextCount = isMobile ? 6000 : isTablet ? 10000 : 16000;
 
   const opText = (fadeIn: number, peak: number, fadeOut: number) => {
     if (scrollProgress < fadeIn) return 0;
@@ -131,7 +131,7 @@ export function ScrollScene({ scrollProgress, onCardClick }: Props) {
           color1="#55aaff"
           color2="#aa55ff"
           color3="#ff55aa"
-          fontSize={280}
+          fontSize={560}
         />
       </group>
 
@@ -146,7 +146,7 @@ export function ScrollScene({ scrollProgress, onCardClick }: Props) {
           color1="#4488cc"
           color2="#8855cc"
           color3="#cc5588"
-          fontSize={isMobile ? 32 : 44}
+          fontSize={isMobile ? 64 : 88}
         />
       </group>
 
@@ -160,7 +160,7 @@ export function ScrollScene({ scrollProgress, onCardClick }: Props) {
           color1="#55ccff"
           color2="#55ffcc"
           color3="#aaffee"
-          fontSize={isMobile ? 34 : 48}
+          fontSize={isMobile ? 68 : 96}
         />
       </group>
 
@@ -174,7 +174,7 @@ export function ScrollScene({ scrollProgress, onCardClick }: Props) {
           color1="#cc88ff"
           color2="#ff88cc"
           color3="#ffaa88"
-          fontSize={isMobile ? 28 : 38}
+          fontSize={isMobile ? 56 : 76}
         />
       </group>
 
@@ -188,7 +188,7 @@ export function ScrollScene({ scrollProgress, onCardClick }: Props) {
           color1="#ffaa55"
           color2="#ff5577"
           color3="#aa55ff"
-          fontSize={isMobile ? 28 : 40}
+          fontSize={isMobile ? 56 : 80}
         />
       </group>
 
@@ -202,7 +202,7 @@ export function ScrollScene({ scrollProgress, onCardClick }: Props) {
           color1="#55ff88"
           color2="#88ffaa"
           color3="#aaddff"
-          fontSize={isMobile ? 28 : 40}
+          fontSize={isMobile ? 56 : 80}
         />
       </group>
 
@@ -216,7 +216,7 @@ export function ScrollScene({ scrollProgress, onCardClick }: Props) {
           color1="#ffaa55"
           color2="#ff5577"
           color3="#aa55ff"
-          fontSize={isMobile ? 26 : 36}
+          fontSize={isMobile ? 52 : 72}
         />
       </group>
 
@@ -230,7 +230,7 @@ export function ScrollScene({ scrollProgress, onCardClick }: Props) {
           color1="#55aaff"
           color2="#55ffaa"
           color3="#ffaa55"
-          fontSize={isMobile ? 28 : 40}
+          fontSize={isMobile ? 56 : 80}
         />
       </group>
 
@@ -244,7 +244,7 @@ export function ScrollScene({ scrollProgress, onCardClick }: Props) {
           color1="#ff88aa"
           color2="#aa88ff"
           color3="#88ffaa"
-          fontSize={isMobile ? 30 : 42}
+          fontSize={isMobile ? 60 : 84}
         />
       </group>
 
@@ -258,7 +258,7 @@ export function ScrollScene({ scrollProgress, onCardClick }: Props) {
           color1="#ffcc55"
           color2="#ff7755"
           color3="#cc55ff"
-          fontSize={isMobile ? 28 : 40}
+          fontSize={isMobile ? 56 : 80}
         />
       </group>
 
@@ -272,7 +272,7 @@ export function ScrollScene({ scrollProgress, onCardClick }: Props) {
           color1="#55aaff"
           color2="#55ffaa"
           color3="#ffaa55"
-          fontSize={isMobile ? 40 : 58}
+          fontSize={isMobile ? 80 : 116}
         />
       </group>
 
