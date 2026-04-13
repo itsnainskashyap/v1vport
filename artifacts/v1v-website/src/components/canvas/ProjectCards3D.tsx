@@ -18,11 +18,11 @@ const PROJECT_IMAGES = [
 ];
 
 const CARD_CONFIGS = [
-  { x: -5.0, y: 0.4,  z: -63, rotY:  0.28, rotX: -0.04 },
-  { x:  5.0, y: -0.2, z: -67, rotY: -0.28, rotX:  0.04 },
-  { x: -4.5, y:  0.6, z: -71, rotY:  0.22, rotX: -0.03 },
-  { x:  5.0, y: -0.4, z: -75, rotY: -0.24, rotX:  0.05 },
-  { x:  0.0, y:  0.3, z: -79, rotY:  0.06, rotX: -0.02 },
+  { x: -5.0, y: 0.4,  z: -22, rotY:  0.28, rotX: -0.04 },
+  { x:  5.0, y: -0.2, z: -26, rotY: -0.28, rotX:  0.04 },
+  { x: -4.5, y:  0.6, z: -30, rotY:  0.22, rotX: -0.03 },
+  { x:  5.0, y: -0.4, z: -34, rotY: -0.24, rotX:  0.05 },
+  { x:  0.0, y:  0.3, z: -38, rotY:  0.06, rotX: -0.02 },
 ];
 
 const CARD_W = 5.0;
