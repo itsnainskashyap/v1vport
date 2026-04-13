@@ -5,7 +5,6 @@ import { ParticleText } from "./ParticleText";
 import { ParticleField } from "./ParticleField";
 import { FloatingImages } from "./FloatingImages";
 import { Spaceship } from "./Spaceship";
-import { ProjectCards3D } from "./ProjectCards3D";
 
 interface Props {
   scrollProgress: number;
@@ -282,9 +281,6 @@ export function ScrollScene({ scrollProgress, onCardClick }: Props) {
         <Spaceship scrollProgress={scrollProgress} />
       </Suspense>
 
-      <Suspense fallback={null}>
-        <ProjectCards3D scrollProgress={scrollProgress} onCardClick={onCardClick} />
-      </Suspense>
 
       <ParticleField count={isMobile ? 6000 : isTablet ? 12000 : 22000} scrollProgress={scrollProgress} />
     </>

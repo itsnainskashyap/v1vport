@@ -22,9 +22,9 @@ function createCircleTexture(): THREE.Texture {
   const ctx = canvas.getContext("2d")!;
   const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
   gradient.addColorStop(0, "rgba(255,255,255,1)");
-  gradient.addColorStop(0.15, "rgba(255,255,255,1)");
-  gradient.addColorStop(0.4, "rgba(255,255,255,0.8)");
-  gradient.addColorStop(0.65, "rgba(255,255,255,0.3)");
+  gradient.addColorStop(0.25, "rgba(255,255,255,1)");
+  gradient.addColorStop(0.5, "rgba(255,255,255,0.9)");
+  gradient.addColorStop(0.7, "rgba(255,255,255,0.4)");
   gradient.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, 64, 64);
@@ -85,8 +85,8 @@ function sampleTextPositions(
     const idx = Math.floor((i / count) * validPositions.length);
     const pos = validPositions[idx];
     selected.push({
-      x: pos.x + (Math.random() - 0.5) * 0.4,
-      y: pos.y + (Math.random() - 0.5) * 0.4,
+      x: pos.x + (Math.random() - 0.5) * 0.15,
+      y: pos.y + (Math.random() - 0.5) * 0.15,
     });
   }
 
@@ -226,7 +226,7 @@ export function ParticleText({
   if (!data) return null;
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-  const particleSize = isMobile ? 0.032 : 0.036;
+  const particleSize = isMobile ? 0.025 : 0.028;
 
   return (
     <group position={position}>
