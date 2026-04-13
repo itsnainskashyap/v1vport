@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useGetSettings, useGetProjects } from "@workspace/api-client-react";
 import { Navigation } from "./Navigation";
@@ -8,8 +8,6 @@ import { ContactPopup } from "./ContactPopup";
 interface Props {
   scrollProgress: number;
   onNavigate: (section: string) => void;
-  selectedCardIndex?: number | null;
-  onClearCardSelection?: () => void;
 }
 
 function clampOpacity(progress: number, fadeIn: number, peak: number, fadeOut: number): number {
@@ -24,28 +22,106 @@ function clampOpacity(progress: number, fadeIn: number, peak: number, fadeOut: n
   return Math.max(0, Math.min(1, 1 - (progress - fadeOut) / fadeRange));
 }
 
-export function UIOverlay({ scrollProgress, onNavigate, selectedCardIndex, onClearCardSelection }: Props) {
+const PROJECT_IMAGES = [
+  "projects/prometheus.png",
+  "projects/echo.png",
+  "projects/patronus.png",
+  "projects/maison-noir.png",
+  "projects/stellar.png",
+];
+
+const ZONE_START = 0.28;
+const ZONE_END = 0.58;
+const NUM_PAIRS = 3;
+const PAIR_WIDTH = (ZONE_END - ZONE_START) / NUM_PAIRS;
+const FADE = 0.025;
+
+function getPairOpacity(pairIndex: number, progress: number): number {
+  const start = ZONE_START + pairIndex * PAIR_WIDTH;
+  const end = start + PAIR_WIDTH;
+  if (progress < start) return 0;
+  if (progress < start + FADE) return (progress - start) / FADE;
+  if (progress < end - FADE) return 1;
+  if (progress < end) return (end - progress) / FADE;
+  return 0;
+}
+
+interface ProjectCardProps {
+  projectId: string;
+  title: string;
+  shortDesc: string;
+  category: string;
+  year: string;
+  imageUrl: string;
+  side: "left" | "right";
+  opacity: number;
+  onDetails: (id: string) => void;
+}
+
+function ProjectCard({ projectId, title, shortDesc, category, year, imageUrl, side, opacity, onDetails }: ProjectCardProps) {
+  const xOffset = side === "left" ? -30 : 30;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: xOffset }}
+      animate={{ opacity, x: opacity > 0.05 ? 0 : xOffset }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      style={{ pointerEvents: opacity > 0.3 ? "auto" : "none" }}
+      className="w-full max-w-[340px]"
+    >
+      <div className="bg-[rgba(5,10,20,0.82)] backdrop-blur-xl border border-[rgba(85,170,255,0.12)] rounded-2xl overflow-hidden shadow-[0_0_60px_rgba(85,170,255,0.06)] group hover:border-[rgba(85,170,255,0.25)] transition-all duration-500">
+        <div className="relative w-full aspect-[16/9] overflow-hidden">
+          <img
+            src={imageUrl}
+            alt={title}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[rgba(5,10,20,0.8)] via-transparent to-transparent" />
+          <div className="absolute top-3 right-3">
+            <span className="text-[7px] tracking-[0.25em] uppercase text-[rgba(85,170,255,0.7)] font-mono bg-[rgba(5,10,20,0.7)] px-2.5 py-1 rounded-full border border-[rgba(85,170,255,0.15)]">
+              {category}
+            </span>
+          </div>
+        </div>
+
+        <div className="p-5">
+          <div className="flex items-start justify-between mb-2">
+            <h3 className="text-white font-black tracking-[-0.02em] text-base leading-tight">
+              {title}
+            </h3>
+            <span className="text-[8px] text-[rgba(255,255,255,0.25)] font-mono mt-0.5 ml-2 shrink-0">
+              {year}
+            </span>
+          </div>
+
+          <p className="text-[rgba(255,255,255,0.4)] text-[10px] leading-relaxed font-light mb-4 line-clamp-2">
+            {shortDesc}
+          </p>
+
+          <button
+            onClick={() => onDetails(projectId)}
+            className="w-full py-2.5 bg-[rgba(85,170,255,0.08)] border border-[rgba(85,170,255,0.2)] rounded-lg text-[9px] tracking-[0.25em] uppercase font-mono text-[rgba(85,170,255,0.8)] hover:bg-[rgba(85,170,255,0.18)] hover:text-white hover:border-[rgba(85,170,255,0.4)] transition-all duration-300 interactive"
+          >
+            DETAILS
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+export function UIOverlay({ scrollProgress, onNavigate }: Props) {
   const { data: settings } = useGetSettings();
   const { data: projects } = useGetProjects();
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [showContactPopup, setShowContactPopup] = useState(false);
 
+  const basePath = import.meta.env.BASE_URL;
   const contactEmail = settings?.contactEmail || "hello@v1v.in";
-
   const projectList = projects || [];
 
-  useEffect(() => {
-    if (selectedCardIndex !== null && selectedCardIndex !== undefined && projectList.length > 0) {
-      const project = projectList[selectedCardIndex];
-      if (project) {
-        setSelectedProjectId(project.id);
-        if (onClearCardSelection) onClearCardSelection();
-      }
-    }
-  }, [selectedCardIndex, projectList, onClearCardSelection]);
-
   const scrollIndicatorOpacity = Math.max(0, 1 - scrollProgress * 8);
-  const bhLabelOpacity = clampOpacity(scrollProgress, 0.30, 0.34, 0.55);
   const workLabelOpacity = clampOpacity(scrollProgress, 0.32, 0.36, 0.55);
   const contactOpacity = clampOpacity(scrollProgress, 0.82, 0.86, 1.0);
 
@@ -56,6 +132,14 @@ export function UIOverlay({ scrollProgress, onNavigate, selectedCardIndex, onCle
 
   const whatsappNumber = settings?.socialLinks?.whatsapp || "+917282074603";
   const whatsappLink = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}`;
+
+  const pairs: [number, number | null][] = [
+    [0, 1],
+    [2, 3],
+    [4, null],
+  ];
+
+  const projectZoneActive = scrollProgress >= ZONE_START - 0.02 && scrollProgress <= ZONE_END + 0.02;
 
   return (
     <>
@@ -74,16 +158,55 @@ export function UIOverlay({ scrollProgress, onNavigate, selectedCardIndex, onCle
         <div className="w-[1px] h-10 bg-gradient-to-b from-[rgba(85,170,255,0.2)] to-transparent animate-pulse" />
       </div>
 
-      <div
-        className="fixed left-8 top-1/2 -translate-y-1/2 z-10 pointer-events-none"
-        style={{ opacity: bhLabelOpacity, visibility: bhLabelOpacity < 0.01 ? "hidden" : "visible" }}
-      >
-        <p className="text-[8px] tracking-[0.3em] uppercase text-[rgba(85,170,255,0.35)] font-mono writing-vertical"
-          style={{ writingMode: "vertical-rl", letterSpacing: "0.3em" }}
-        >
-          BLACK HOLE
-        </p>
-      </div>
+      {projectZoneActive && (
+        <div className="fixed inset-0 z-10 pointer-events-none flex items-center justify-center">
+          <div className="w-full px-4 md:px-10 max-w-[820px] mx-auto">
+            {pairs.map((pair, pairIndex) => {
+              const opacity = getPairOpacity(pairIndex, scrollProgress);
+              if (opacity < 0.01) return null;
+
+              const leftIdx = pair[0];
+              const rightIdx = pair[1];
+              const leftProject = projectList[leftIdx];
+              const rightProject = rightIdx !== null ? projectList[rightIdx] : null;
+
+              return (
+                <div key={pairIndex} className="flex gap-4 md:gap-6 justify-center">
+                  {leftProject && (
+                    <ProjectCard
+                      projectId={leftProject.id}
+                      title={leftProject.title}
+                      shortDesc={leftProject.shortDesc}
+                      category={leftProject.category}
+                      year={leftProject.year}
+                      imageUrl={basePath + PROJECT_IMAGES[leftIdx]}
+                      side="left"
+                      opacity={opacity}
+                      onDetails={setSelectedProjectId}
+                    />
+                  )}
+                  {rightProject && (
+                    <ProjectCard
+                      projectId={rightProject.id}
+                      title={rightProject.title}
+                      shortDesc={rightProject.shortDesc}
+                      category={rightProject.category}
+                      year={rightProject.year}
+                      imageUrl={basePath + PROJECT_IMAGES[rightIdx!]}
+                      side="right"
+                      opacity={opacity}
+                      onDetails={setSelectedProjectId}
+                    />
+                  )}
+                  {!rightProject && rightIdx === null && (
+                    <div className="w-full max-w-[340px]" />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div
         className="fixed right-8 md:right-16 top-1/2 -translate-y-1/2 z-10 pointer-events-none"

@@ -2,17 +2,15 @@ import { useRef, useEffect, useMemo, Suspense } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { ParticleText } from "./ParticleText";
-import { BlackHole } from "./BlackHole";
 import { ParticleField } from "./ParticleField";
 import { FloatingImages } from "./FloatingImages";
 import { Spaceship } from "./Spaceship";
 
 interface Props {
   scrollProgress: number;
-  onCardClick?: (index: number) => void;
 }
 
-export function ScrollScene({ scrollProgress, onCardClick }: Props) {
+export function ScrollScene({ scrollProgress }: Props) {
   const { camera } = useThree();
   const mouse = useRef({ x: 0, y: 0 });
   const smoothProgress = useRef(0);
@@ -112,8 +110,6 @@ export function ScrollScene({ scrollProgress, onCardClick }: Props) {
   const text3Opacity = opText(0.18, 0.21, 0.25);
   const text4Opacity = opText(0.22, 0.25, 0.29);
 
-  const dnaOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.28) * 4)) * Math.max(0, 1 - (scrollProgress - 0.58) * 4);
-
   const text5Opacity = opText(0.60, 0.63, 0.67);
   const text6Opacity = opText(0.65, 0.68, 0.72);
   const text7Opacity = opText(0.72, 0.75, 0.79);
@@ -207,12 +203,6 @@ export function ScrollScene({ scrollProgress, onCardClick }: Props) {
           fontSize={isMobile ? 28 : 40}
         />
       </group>
-
-      <Suspense fallback={null}>
-        <group visible={dnaOpacity > 0.01}>
-          <BlackHole scrollProgress={scrollProgress} opacity={dnaOpacity} onCardClick={onCardClick} />
-        </group>
-      </Suspense>
 
       <group visible={text5Opacity > 0.01}>
         <ParticleText

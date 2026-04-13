@@ -120,7 +120,6 @@ function CSSFallbackScene({ scrollProgress }: { scrollProgress: number }) {
 
 interface SceneProps {
   scrollProgress: number;
-  onCardClick?: (index: number) => void;
 }
 
 function LoadingOverlay({ visible }: { visible: boolean }) {
@@ -144,7 +143,7 @@ function SceneReadyNotifier({ onReady }: { onReady: () => void }) {
   return null;
 }
 
-export function Scene({ scrollProgress, onCardClick }: SceneProps) {
+export function Scene({ scrollProgress }: SceneProps) {
   const [webglSupported, setWebglSupported] = useState<boolean | null>(null);
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -197,7 +196,7 @@ export function Scene({ scrollProgress, onCardClick }: SceneProps) {
             <pointLight position={[3, -5, -2]} intensity={0.3} color="#cc5599" />
             <pointLight position={[-3, 4, -20]} intensity={0.3} color="#55cc88" />
             <directionalLight position={[0, 10, 5]} intensity={0.25} color="#88aacc" />
-            <ScrollScene scrollProgress={scrollProgress} onCardClick={onCardClick} />
+            <ScrollScene scrollProgress={scrollProgress} />
             <EffectComposer multisampling={0}>
               <Bloom
                 intensity={1.5}
