@@ -2,6 +2,7 @@ import { useRef, useMemo, useEffect } from "react";
 import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import { useFBX } from "@react-three/drei";
 import * as THREE from "three";
+import { EngineFlame } from "./EngineFlame";
 
 interface Props {
   scrollProgress: number;
@@ -184,6 +185,7 @@ export function Spaceship({ scrollProgress }: Props) {
         <primitive object={fbx} />
         <pointLight color="#33ccff" intensity={2} distance={8} />
         <pointLight color="#ff5533" intensity={1.5} distance={5} position={[0, 0, 50]} />
+        <EngineFlame scrollProgress={scrollProgress} />
       </group>
 
       <points ref={trailRef}>

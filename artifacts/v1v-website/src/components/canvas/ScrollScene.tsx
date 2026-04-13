@@ -5,6 +5,12 @@ import { ParticleText } from "./ParticleText";
 import { ParticleField } from "./ParticleField";
 import { FloatingImages } from "./FloatingImages";
 import { Spaceship } from "./Spaceship";
+import { SpeedLines } from "./SpeedLines";
+import { NebulaClouds } from "./NebulaClouds";
+import { AsteroidBelt } from "./AsteroidBelt";
+import { PlanetFlyby } from "./PlanetFlyby";
+import { DynamicLighting } from "./DynamicLighting";
+import { LensFlares } from "./LensFlares";
 
 interface Props {
   scrollProgress: number;
@@ -16,6 +22,8 @@ export function ScrollScene({ scrollProgress, onCardClick }: Props) {
   const mouse = useRef({ x: 0, y: 0 });
   const smoothProgress = useRef(0);
   const cameraTarget = useRef(new THREE.Vector3(0, 0, 0));
+  const prevScrollForShake = useRef(0);
+  const shakeIntensity = useRef(0);
 
   useEffect(() => {
     const handleMouse = (e: MouseEvent) => {
@@ -75,8 +83,20 @@ export function ScrollScene({ scrollProgress, onCardClick }: Props) {
     const parallaxX = mouse.current.x * 0.4;
     const parallaxY = mouse.current.y * 0.25;
 
-    camera.position.x = THREE.MathUtils.lerp(camera.position.x, cameraX + parallaxX, 0.04);
-    camera.position.y = THREE.MathUtils.lerp(camera.position.y, cameraY + parallaxY, 0.04);
+    const scrollDelta = Math.abs(scrollProgress - prevScrollForShake.current);
+    prevScrollForShake.current = scrollProgress;
+    const rawShake = scrollDelta * 40;
+    shakeIntensity.current += (rawShake - shakeIntensity.current) * 0.1;
+    const shake = Math.min(shakeIntensity.current, 1);
+
+    const shakeNearText = textInfluence * 0.3;
+    const totalShake = Math.min(shake + shakeNearText, 1);
+    const time = performance.now() * 0.001;
+    const shakeX = (Math.sin(time * 25) * 0.04 + Math.sin(time * 37) * 0.02) * totalShake;
+    const shakeY = (Math.cos(time * 30) * 0.03 + Math.cos(time * 43) * 0.015) * totalShake;
+
+    camera.position.x = THREE.MathUtils.lerp(camera.position.x, cameraX + parallaxX + shakeX, 0.04);
+    camera.position.y = THREE.MathUtils.lerp(camera.position.y, cameraY + parallaxY + shakeY, 0.04);
     camera.position.z = THREE.MathUtils.lerp(camera.position.z, cameraZ, 0.04);
 
     const lookAhead = 12;
@@ -281,6 +301,15 @@ export function ScrollScene({ scrollProgress, onCardClick }: Props) {
         <Spaceship scrollProgress={scrollProgress} />
       </Suspense>
 
+      <DynamicLighting scrollProgress={scrollProgress} />
+      <NebulaClouds />
+      <SpeedLines scrollProgress={scrollProgress} />
+      <LensFlares />
+      <AsteroidBelt scrollProgress={scrollProgress} />
+
+      <Suspense fallback={null}>
+        <PlanetFlyby />
+      </Suspense>
 
       <ParticleField count={isMobile ? 6000 : isTablet ? 12000 : 22000} scrollProgress={scrollProgress} />
     </>
